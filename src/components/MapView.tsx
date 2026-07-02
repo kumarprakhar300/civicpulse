@@ -98,15 +98,15 @@ export default function MapView({ reports }: { reports: Report[]; filter: string
       `;
 
       marker.bindPopup(popupHtml);
-      marker.addTo(markersLayer.current);
+      marker.addTo(layer);
       bounds.extend([report.latitude, report.longitude]);
       hasBounds = true;
     });
 
     if (hasBounds && reports.length > 1) {
-      leafletMap.current.fitBounds(bounds, { padding: [40, 40] });
+      map.fitBounds(bounds, { padding: [40, 40] });
     } else if (hasBounds) {
-      leafletMap.current.setView([reports[0].latitude, reports[0].longitude], 14);
+      map.setView([reports[0].latitude, reports[0].longitude], 14);
     }
   }, [reports]);
 
