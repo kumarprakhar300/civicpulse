@@ -52,6 +52,9 @@ function LandingPage() {
             {email ? (
               <>
                 <span className="hidden text-sm text-muted-foreground sm:inline">{email}</span>
+                <Link to="/report">
+                  <Button variant="ghost" size="sm">Report</Button>
+                </Link>
                 <Button
                   variant="outline"
                   size="sm"
@@ -86,14 +89,24 @@ function LandingPage() {
           who isn't. Open data, real accountability.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Link to="/auth">
-            <Button size="lg" className="gap-2">
-              Get started free <ArrowRight className="h-4 w-4" />
+          {email ? (
+            <Link to="/report">
+              <Button size="lg" className="gap-2">
+                Report an issue <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          ) : (
+            <Link to="/auth">
+              <Button size="lg" className="gap-2">
+                Get started free <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          )}
+          <Link to="/map">
+            <Button size="lg" variant="outline">
+              View public map
             </Button>
           </Link>
-          <Button size="lg" variant="outline" disabled>
-            View public map (coming Day 3)
-          </Button>
         </div>
       </section>
 
