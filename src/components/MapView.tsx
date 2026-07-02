@@ -68,9 +68,11 @@ export default function MapView({ reports }: { reports: Report[]; filter: string
   }, []);
 
   useEffect(() => {
-    if (!markersLayer.current || !leafletMap.current) return;
+    const layer = markersLayer.current;
+    const map = leafletMap.current;
+    if (!layer || !map) return;
 
-    markersLayer.current.clearLayers();
+    layer.clearLayers();
 
     if (reports.length === 0) return;
 
