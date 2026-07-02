@@ -52,6 +52,9 @@ function LandingPage() {
             {email ? (
               <>
                 <span className="hidden text-sm text-muted-foreground sm:inline">{email}</span>
+                <Link to="/report">
+                  <Button variant="ghost" size="sm">Report</Button>
+                </Link>
                 <Button
                   variant="outline"
                   size="sm"
