@@ -102,9 +102,11 @@ function LandingPage() {
               </Button>
             </Link>
           )}
-          <Button size="lg" variant="outline" disabled>
-            View public map (coming Day 3)
-          </Button>
+          <Link to="/map">
+            <Button size="lg" variant="outline">
+              View public map
+            </Button>
+          </Link>
         </div>
       </section>
 
