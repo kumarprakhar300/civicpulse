@@ -86,11 +86,19 @@ function LandingPage() {
           who isn't. Open data, real accountability.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Link to="/auth">
-            <Button size="lg" className="gap-2">
-              Get started free <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
+          {email ? (
+            <Link to="/report">
+              <Button size="lg" className="gap-2">
+                Report an issue <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          ) : (
+            <Link to="/auth">
+              <Button size="lg" className="gap-2">
+                Get started free <ArrowRight className="h-4 w-4" />
+              </Button>
+            </Link>
+          )}
           <Button size="lg" variant="outline" disabled>
             View public map (coming Day 3)
           </Button>
