@@ -14,11 +14,150 @@ export type Database = {
   }
   public: {
     Tables: {
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          message: string
+          read_at: string | null
+          report_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          message: string
+          read_at?: string | null
+          report_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          message?: string
+          read_at?: string | null
+          report_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_comments: {
+        Row: {
+          author_label: string | null
+          body: string
+          created_at: string
+          id: string
+          report_id: string
+          user_id: string
+        }
+        Insert: {
+          author_label?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          report_id: string
+          user_id: string
+        }
+        Update: {
+          author_label?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          report_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_comments_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_status_history: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          from_status: string | null
+          id: string
+          report_id: string
+          to_status: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          from_status?: string | null
+          id?: string
+          report_id: string
+          to_status: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          from_status?: string | null
+          id?: string
+          report_id?: string
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_status_history_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_votes: {
+        Row: {
+          created_at: string
+          id: string
+          report_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          report_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          report_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_votes_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reports: {
         Row: {
           created_at: string
+          department: string | null
           description: string | null
           id: string
+          internal_notes: string | null
           issue_type: string
           latitude: number
           longitude: number
@@ -27,13 +166,16 @@ export type Database = {
           status: string
           title: string
           updated_at: string
+          upvote_count: number
           user_id: string
           ward: string | null
         }
         Insert: {
           created_at?: string
+          department?: string | null
           description?: string | null
           id?: string
+          internal_notes?: string | null
           issue_type: string
           latitude: number
           longitude: number
@@ -42,13 +184,16 @@ export type Database = {
           status?: string
           title: string
           updated_at?: string
+          upvote_count?: number
           user_id: string
           ward?: string | null
         }
         Update: {
           created_at?: string
+          department?: string | null
           description?: string | null
           id?: string
+          internal_notes?: string | null
           issue_type?: string
           latitude?: number
           longitude?: number
@@ -57,6 +202,7 @@ export type Database = {
           status?: string
           title?: string
           updated_at?: string
+          upvote_count?: number
           user_id?: string
           ward?: string | null
         }
