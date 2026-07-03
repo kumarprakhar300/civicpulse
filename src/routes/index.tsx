@@ -48,21 +48,16 @@ function LandingPage() {
             </span>
             CivicPulse
           </Link>
-          <nav className="flex items-center gap-2">
-            <Link to="/map">
-              <Button variant="ghost" size="sm">Map</Button>
-            </Link>
-            <Link to="/dashboard">
-              <Button variant="ghost" size="sm">Dashboard</Button>
-            </Link>
+          <nav className="flex items-center gap-1">
+            <Link to="/map"><Button variant="ghost" size="sm">Map</Button></Link>
+            <Link to="/dashboard"><Button variant="ghost" size="sm">Dashboard</Button></Link>
+            <Link to="/pricing"><Button variant="ghost" size="sm">Pricing</Button></Link>
+            <Link to="/about"><Button variant="ghost" size="sm">About</Button></Link>
             {email ? (
               <>
-                <Link to="/report">
-                  <Button variant="ghost" size="sm">Report</Button>
-                </Link>
-                <Link to="/admin">
-                  <Button variant="ghost" size="sm">Admin</Button>
-                </Link>
+                <Link to="/report"><Button variant="ghost" size="sm">Report</Button></Link>
+                <Link to="/my-reports"><Button variant="ghost" size="sm">My reports</Button></Link>
+                <Link to="/admin"><Button variant="ghost" size="sm">Admin</Button></Link>
                 <Button
                   variant="outline"
                   size="sm"
@@ -74,13 +69,13 @@ function LandingPage() {
                 </Button>
               </>
             ) : (
-              <Link to="/auth">
-                <Button size="sm">Sign in</Button>
-              </Link>
+              <Link to="/auth"><Button size="sm">Sign in</Button></Link>
             )}
           </nav>
         </div>
       </header>
+
+      {/* Footer nav is bottom of page */}
 
       {/* Hero */}
       <section className="mx-auto max-w-6xl px-6 py-20 text-center">
