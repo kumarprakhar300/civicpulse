@@ -1,9 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useServerFn } from "@tanstack/react-start";
+import { adminUpdateReport, adminBulkStatus, adminExportCsv } from "@/lib/reports-auth.functions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -11,25 +16,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MapPin, Loader2, ShieldAlert } from "lucide-react";
+import { MapPin, Loader2, ShieldAlert, Download } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
       { title: "Admin — CivicPulse" },
-      { name: "description", content: "Manage civic issue reports and update their status." },
+      { name: "description", content: "Manage civic issue reports, assign departments, add notes." },
     ],
   }),
   component: AdminPage,
 });
 
-const statuses = ["open", "in_progress", "resolved"];
+const STATUSES = ["open", "in_progress", "resolved"];
+const DEPARTMENTS = ["roads", "sanitation", "electricity", "general"];
 
 function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [reports, setReports] = useState<any[]>([]);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  const updateFn = useServerFn(adminUpdateReport);
+  const bulkFn = useServerFn(adminBulkStatus);
+  const exportFn = useServerFn(adminExportCsv);
 
   useEffect(() => {
     (async () => {
@@ -55,22 +69,50 @@ function AdminPage() {
     else setReports(data || []);
   }
 
-  async function updateStatus(id: string, status: string) {
-    const { error } = await (supabase as any)
-      .from("reports")
-      .update({ status })
-      .eq("id", id);
-    if (error) return toast.error(error.message);
-    toast.success("Status updated");
-    loadReports();
+  const filtered = useMemo(() => {
+    return reports.filter((r) => {
+      if (statusFilter !== "all" && r.status !== statusFilter) return false;
+      if (typeFilter !== "all" && r.issue_type !== typeFilter) return false;
+      if (search && !r.title.toLowerCase().includes(search.toLowerCase())) return false;
+      return true;
+    });
+  }, [reports, statusFilter, typeFilter, search]);
+
+  async function updateOne(id: string, patch: Record<string, unknown>) {
+    try {
+      await updateFn({ data: { id, ...patch } });
+      toast.success("Saved");
+      loadReports();
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed");
+    }
   }
 
-  async function deleteReport(id: string) {
-    if (!confirm("Delete this report?")) return;
-    const { error } = await (supabase as any).from("reports").delete().eq("id", id);
-    if (error) return toast.error(error.message);
-    toast.success("Report deleted");
-    loadReports();
+  async function bulkResolve() {
+    if (selected.size === 0) return toast.error("Select reports first");
+    try {
+      const res = await bulkFn({ data: { ids: Array.from(selected), status: "resolved" } });
+      toast.success(`Resolved ${res.count} reports`);
+      setSelected(new Set());
+      loadReports();
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed");
+    }
+  }
+
+  async function downloadCsv() {
+    try {
+      const { csv } = await exportFn();
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `civicpulse-reports-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed");
+    }
   }
 
   if (loading) {
@@ -89,8 +131,7 @@ function AdminPage() {
             <ShieldAlert className="mx-auto h-12 w-12 text-destructive" />
             <h1 className="mt-4 text-xl font-bold">Admin access required</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Your account doesn't have the admin role. Contact the project owner to be granted
-              access.
+              Your account doesn't have the admin role.
             </p>
             <Link to="/" className="mt-4 inline-block">
               <Button variant="outline" size="sm">Back home</Button>
@@ -100,6 +141,8 @@ function AdminPage() {
       </div>
     );
   }
+
+  const allSelected = filtered.length > 0 && filtered.every((r) => selected.has(r.id));
 
   return (
     <div className="min-h-screen bg-background">
@@ -111,71 +154,141 @@ function AdminPage() {
             </span>
             CivicPulse Admin
           </Link>
-          <Link to="/dashboard">
-            <Button variant="ghost" size="sm">Dashboard</Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link to="/dashboard"><Button variant="ghost" size="sm">Dashboard</Button></Link>
+            <Button size="sm" variant="outline" onClick={downloadCsv} className="gap-1">
+              <Download className="h-4 w-4" /> CSV
+            </Button>
+          </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-10">
-        <h1 className="mb-6 text-3xl font-bold">Report management</h1>
+      <main className="mx-auto max-w-7xl px-6 py-10 space-y-6">
+        <h1 className="text-3xl font-bold">Report management</h1>
+
+        {/* Filters + bulk actions */}
+        <Card>
+          <CardContent className="flex flex-wrap items-center gap-3 p-4">
+            <Input
+              placeholder="Search title…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-56"
+            />
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All types</SelectItem>
+                {["pothole", "garbage", "streetlight", "other"].map((t) => (
+                  <SelectItem key={t} value={t}>{t}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="ml-auto flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                {selected.size} selected
+              </span>
+              <Button size="sm" onClick={bulkResolve} disabled={selected.size === 0}>
+                Bulk resolve
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex items-center gap-2 px-1">
+          <Checkbox
+            checked={allSelected}
+            onCheckedChange={(v) => {
+              if (v) setSelected(new Set(filtered.map((r) => r.id)));
+              else setSelected(new Set());
+            }}
+          />
+          <span className="text-xs text-muted-foreground">Select all ({filtered.length})</span>
+        </div>
+
         <div className="grid gap-4">
-          {reports.length === 0 && (
-            <p className="text-muted-foreground">No reports yet.</p>
+          {filtered.length === 0 && (
+            <p className="text-muted-foreground">No reports match.</p>
           )}
-          {reports.map((r) => (
+          {filtered.map((r) => (
             <Card key={r.id}>
-              <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">
-                <div>
-                  <CardTitle className="text-base">{r.title}</CardTitle>
+              <CardHeader className="flex flex-row items-start gap-4 space-y-0">
+                <Checkbox
+                  checked={selected.has(r.id)}
+                  onCheckedChange={(v) => {
+                    setSelected((prev) => {
+                      const next = new Set(prev);
+                      if (v) next.add(r.id);
+                      else next.delete(r.id);
+                      return next;
+                    });
+                  }}
+                  className="mt-1"
+                />
+                <div className="flex-1">
+                  <CardTitle className="text-base">
+                    <Link to="/report/$id" params={{ id: r.id }} className="hover:underline">
+                      {r.title}
+                    </Link>
+                  </CardTitle>
                   <div className="mt-2 flex flex-wrap gap-2">
                     <Badge variant="outline">{r.issue_type}</Badge>
-                    <Badge
-                      variant={
-                        r.status === "resolved"
-                          ? "default"
-                          : r.status === "in_progress"
-                          ? "secondary"
-                          : "outline"
-                      }
-                    >
+                    <Badge variant={r.status === "resolved" ? "default" : "secondary"}>
                       {r.status}
                     </Badge>
+                    {r.ward && <Badge variant="outline">{r.ward}</Badge>}
+                    {r.department && <Badge variant="outline">{r.department}</Badge>}
                     <span className="text-xs text-muted-foreground">
                       {new Date(r.created_at).toLocaleString()}
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Select value={r.status} onValueChange={(v) => updateStatus(r.id, v)}>
-                    <SelectTrigger className="w-[160px]">
-                      <SelectValue />
-                    </SelectTrigger>
+              </CardHeader>
+              <CardContent className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-xs font-medium">Status</label>
+                  <Select
+                    value={r.status}
+                    onValueChange={(v) => updateOne(r.id, { status: v })}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {statuses.map((s) => (
-                        <SelectItem key={s} value={s}>{s}</SelectItem>
-                      ))}
+                      {STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                     </SelectContent>
                   </Select>
-                  <Button variant="destructive" size="sm" onClick={() => deleteReport(r.id)}>
-                    Delete
-                  </Button>
                 </div>
-              </CardHeader>
-              <CardContent className="grid gap-4 sm:grid-cols-[160px_1fr]">
-                {r.photo_url && (
-                  <img
-                    src={r.photo_url}
-                    alt=""
-                    className="h-32 w-full rounded-md object-cover"
-                    loading="lazy"
+                <div className="space-y-2">
+                  <label className="text-xs font-medium">Department</label>
+                  <Select
+                    value={r.department ?? "general"}
+                    onValueChange={(v) => updateOne(r.id, { department: v })}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {DEPARTMENTS.map((d) => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="sm:col-span-2 space-y-2">
+                  <label className="text-xs font-medium">Internal notes (admin-only)</label>
+                  <Textarea
+                    defaultValue={r.internal_notes ?? ""}
+                    placeholder="Notes for the ops team…"
+                    rows={2}
+                    onBlur={(e) => {
+                      const val = e.target.value;
+                      if (val !== (r.internal_notes ?? "")) {
+                        updateOne(r.id, { internal_notes: val });
+                      }
+                    }}
                   />
-                )}
-                <div className="text-sm">
-                  {r.description && <p className="mb-2">{r.description}</p>}
-                  <p className="text-xs text-muted-foreground">
-                    📍 {Number(r.latitude).toFixed(5)}, {Number(r.longitude).toFixed(5)}
-                  </p>
                 </div>
               </CardContent>
             </Card>
