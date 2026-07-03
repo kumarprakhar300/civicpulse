@@ -103,11 +103,18 @@ export const adminUpdateReport = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context);
-    const patch: Record<string, unknown> = {};
+    const patch: {
+      status?: string;
+      department?: string | null;
+      internal_notes?: string | null;
+    } = {};
     if (data.status !== undefined) patch.status = data.status;
     if (data.department !== undefined) patch.department = data.department;
     if (data.internal_notes !== undefined) patch.internal_notes = data.internal_notes;
-    const { error } = await context.supabase.from("reports").update(patch).eq("id", data.id);
+    const { error } = await context.supabase
+      .from("reports")
+      .update(patch as never)
+      .eq("id", data.id);
     if (error) throw error;
     return { ok: true };
   });
