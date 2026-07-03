@@ -84,13 +84,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Report potholes, garbage, and broken streetlights with photo + GPS. Public dashboards hold cities accountable.",
       },
-      { property: "og:title", content: "CivicPulse" },
+      { property: "og:title", content: "CivicPulse — Report civic issues, see change happen" },
       {
         property: "og:description",
         content: "Hyperlocal civic issue reporter with public analytics.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "CivicPulse — Report civic issues, see change happen" },
+      { name: "description", content: "Hello World Hub is a simple application that displays \"Hello World.\"" },
+      { property: "og:description", content: "Hello World Hub is a simple application that displays \"Hello World.\"" },
+      { name: "twitter:description", content: "Hello World Hub is a simple application that displays \"Hello World.\"" },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a014e455-62e0-4a83-ae7f-f6678dde9feb/id-preview-6994282e--d249a4d5-4812-4263-b2b2-443949d1d59a.lovable.app-1783057724517.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a014e455-62e0-4a83-ae7f-f6678dde9feb/id-preview-6994282e--d249a4d5-4812-4263-b2b2-443949d1d59a.lovable.app-1783057724517.png" },
     ],
     links: [
       {
