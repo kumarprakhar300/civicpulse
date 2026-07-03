@@ -48,12 +48,20 @@ function LandingPage() {
             </span>
             CivicPulse
           </Link>
-          <nav className="flex items-center gap-3">
+          <nav className="flex items-center gap-2">
+            <Link to="/map">
+              <Button variant="ghost" size="sm">Map</Button>
+            </Link>
+            <Link to="/dashboard">
+              <Button variant="ghost" size="sm">Dashboard</Button>
+            </Link>
             {email ? (
               <>
-                <span className="hidden text-sm text-muted-foreground sm:inline">{email}</span>
                 <Link to="/report">
                   <Button variant="ghost" size="sm">Report</Button>
+                </Link>
+                <Link to="/admin">
+                  <Button variant="ghost" size="sm">Admin</Button>
                 </Link>
                 <Button
                   variant="outline"
@@ -137,7 +145,7 @@ function LandingPage() {
       </section>
 
       <footer className="border-t border-border/60 py-6 text-center text-xs text-muted-foreground">
-        Built as a civic tech portfolio project · Day 1 of 5
+        Built as a civic tech portfolio project · CivicPulse
       </footer>
     </div>
   );
