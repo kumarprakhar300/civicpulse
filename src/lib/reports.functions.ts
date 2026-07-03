@@ -18,7 +18,7 @@ export const getPublicReports = createServerFn({ method: "GET" }).handler(
     const { data, error } = await supabasePublic
       .from("reports")
       .select(
-        "id, title, issue_type, latitude, longitude, photo_url, status, created_at, description"
+        "id, title, issue_type, latitude, longitude, photo_url, status, created_at, description, resolved_at"
       )
       .order("created_at", { ascending: false });
 
