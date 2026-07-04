@@ -9,8 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, MapPin, ThumbsUp, Loader2, Clock } from "lucide-react";
+import { ArrowLeft, MapPin, ThumbsUp, Loader2, Clock, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { SlaBadge } from "@/components/SlaBadge";
 
 export const Route = createFileRoute("/report/$id")({
   head: () => ({
