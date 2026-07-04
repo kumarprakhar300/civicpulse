@@ -251,7 +251,15 @@ function MapPage() {
                 </div>
               }
             >
-              <MapView reports={filtered} filter={filter} selectedId={selectedId} />
+              <MapView
+                reports={filtered}
+                filter={filter}
+                selectedId={selectedId}
+                userLocation={userLocation}
+                clickedPoint={clickedPoint}
+                onMapClick={(lat, lng) => setClickedPoint({ lat, lng })}
+              />
+
             </Suspense>
           ) : (
             <div className="flex h-full items-center justify-center text-slate-400">
