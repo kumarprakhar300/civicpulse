@@ -74,6 +74,39 @@ export function AdminAiCopilot() {
   const [draftMessage, setDraftMessage] = useState("");
   const [sending, setSending] = useState(false);
 
+  const resolveFn = useServerFn(adminResolveWithProof);
+  const [resolveOpen, setResolveOpen] = useState(false);
+  const [resolveFor, setResolveFor] = useState<QueueItem | null>(null);
+  const [resolveFile, setResolveFile] = useState<string | null>(null);
+  const [resolving, setResolving] = useState(false);
+
+  async function onResolveFile(file: File) {
+    const reader = new FileReader();
+    reader.onload = () => setResolveFile(reader.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  function openResolve(item: QueueItem) {
+    setResolveFor(item);
+    setResolveFile(null);
+    setResolveOpen(true);
+  }
+
+  async function submitResolve() {
+    if (!resolveFor || !resolveFile) return;
+    setResolving(true);
+    try {
+      await resolveFn({ data: { reportId: resolveFor.id, photoDataUrl: resolveFile } });
+      toast.success("Marked resolved with proof photo");
+      setResolveOpen(false);
+      setQueue((q) => q.filter((r) => r.id !== resolveFor.id));
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to resolve");
+    } finally {
+      setResolving(false);
+    }
+  }
+
   useEffect(() => {
     (async () => {
       try {
