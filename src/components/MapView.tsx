@@ -47,26 +47,36 @@ export default function MapView({ reports }: { reports: Report[]; filter: string
   useEffect(() => {
     if (!mapRef.current || leafletMap.current) return;
 
-    // India bounds — restrict panning/zoom to India only
+    // India bounds — restrict panning to India
     const indiaBounds = L.latLngBounds(
-      L.latLng(6.5, 68.0),   // SW
-      L.latLng(35.7, 97.5),  // NE
+      L.latLng(6.5, 68.0),
+      L.latLng(35.7, 97.5),
     );
 
     const map = L.map(mapRef.current, {
-      center: [22.9734, 78.6569], // Geographic center of India
+      center: [22.9734, 78.6569],
       zoom: 5,
       minZoom: 4,
       maxZoom: 18,
       maxBounds: indiaBounds,
       maxBoundsViscosity: 1.0,
+      zoomControl: false,
+      attributionControl: false,
     });
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      bounds: indiaBounds,
-    }).addTo(map);
+    L.control.zoom({ position: "topright" }).addTo(map);
+    L.control.attribution({ position: "bottomright", prefix: false }).addTo(map);
+
+    // Dark techy tiles (CartoDB Dark Matter)
+    L.tileLayer(
+      "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+      {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> · <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: "abcd",
+        maxZoom: 19,
+      },
+    ).addTo(map);
 
     leafletMap.current = map;
     markersLayer.current = L.layerGroup().addTo(map);
