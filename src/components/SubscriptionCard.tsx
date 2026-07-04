@@ -185,3 +185,45 @@ export function SubscriptionCard() {
     </GlassCard>
   );
 }
+
+type BadgeTone = "emerald" | "sky" | "amber" | "rose" | "slate";
+
+function StatusBadge({
+  tone,
+  label,
+  dot,
+  pulse,
+}: {
+  tone: BadgeTone;
+  label: string;
+  dot?: boolean;
+  pulse?: boolean;
+}) {
+  const styles: Record<BadgeTone, string> = {
+    emerald: "border-emerald-400/30 bg-emerald-500/10 text-emerald-200",
+    sky: "border-sky-400/30 bg-sky-500/10 text-sky-200",
+    amber: "border-amber-400/30 bg-amber-500/10 text-amber-200",
+    rose: "border-rose-400/30 bg-rose-500/10 text-rose-200",
+    slate: "border-white/15 bg-white/5 text-slate-200",
+  };
+  const dotColor: Record<BadgeTone, string> = {
+    emerald: "bg-emerald-400",
+    sky: "bg-sky-400",
+    amber: "bg-amber-400",
+    rose: "bg-rose-400",
+    slate: "bg-slate-400",
+  };
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider ${styles[tone]}`}
+    >
+      {dot && (
+        <span
+          className={`h-1.5 w-1.5 rounded-full ${dotColor[tone]} ${pulse ? "animate-pulse" : ""}`}
+        />
+      )}
+      {label}
+    </span>
+  );
+}
+
