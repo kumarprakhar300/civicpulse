@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -27,93 +28,66 @@ export const Route = createFileRoute("/pricing")({
           "Simple pricing for Indian municipalities and NGOs. Free for citizens, tiered analytics for governments.",
       },
       { property: "og:title", content: "CivicPulse pricing" },
-      { property: "og:description", content: "Free for citizens. Paid tiers for city-wide analytics." },
+      {
+        property: "og:description",
+        content: "Free for citizens. Paid tiers for city-wide analytics.",
+      },
     ],
   }),
   component: PricingPage,
 });
 
-type Tier = {
-  name: string;
-  price: string;
-  tagline: string;
-  features: string[];
-  cta: string;
-  action: "signup" | "trial" | "sales";
-  highlight?: boolean;
-  hue: string;
-  ring: string;
-};
+type Billing = "monthly" | "yearly";
 
-const tiers: Tier[] = [
-  {
-    name: "Citizen",
-    price: "Free",
-    tagline: "Forever, for everyone.",
-    features: ["Unlimited reports", "Photo + GPS", "Public map & dashboard", "Upvote & comment"],
-    cta: "Get started",
-    action: "signup",
-    hue: "from-cyan-500/30 to-blue-600/10",
-    ring: "border-cyan-400/25",
+const CITY_NGO = {
+  monthly: { priceId: "city_ngo_monthly", label: "₹24,999", suffix: "/mo" },
+  yearly: {
+    priceId: "city_ngo_yearly",
+    label: "₹2,39,990",
+    suffix: "/yr",
+    note: "Save 20% vs monthly",
   },
-  {
-    name: "City / NGO",
-    price: "₹24,999/mo",
-    tagline: "For municipal corporations & accountability orgs.",
-    features: [
-      "Everything in Citizen",
-      "Ward-level analytics & SLA tracking",
-      "CSV export & API access",
-      "Admin roles + bulk actions",
-      "Department routing",
-      "Email support",
-    ],
-    cta: "Start free trial",
-    action: "trial",
-    highlight: true,
-    hue: "from-indigo-500/40 to-purple-600/20",
-    ring: "border-indigo-400/40",
-  },
-  {
-    name: "Enterprise",
-    price: "Custom",
-    tagline: "Multi-city, custom SLAs, on-prem.",
-    features: [
-      "Everything in City",
-      "SSO / SAML",
-      "Custom integrations",
-      "Dedicated success manager",
-      "99.9% uptime SLA",
-    ],
-    cta: "Contact sales",
-    action: "sales",
-    hue: "from-emerald-500/30 to-teal-600/10",
-    ring: "border-emerald-400/25",
-  },
-];
+} as const;
 
 function PricingPage() {
   const navigate = useNavigate();
-  const [selected, setSelected] = useState<Tier | null>(null);
+  const [billing, setBilling] = useState<Billing>("monthly");
+  const [salesOpen, setSalesOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const { openCheckout, loading: checkoutLoading } = usePaddleCheckout();
 
-  async function handleCta(tier: Tier) {
-    if (tier.action === "signup") {
-      const { data } = await supabase.auth.getUser();
-      if (data.user) {
-        toast.success("You're already on the Citizen plan — start reporting!");
-        navigate({ to: "/report" });
-      } else {
-        navigate({ to: "/auth" });
-      }
-      return;
+  async function handleCitizen() {
+    const { data } = await supabase.auth.getUser();
+    if (data.user) {
+      toast.success("You're already on the Citizen plan — start reporting!");
+      navigate({ to: "/report" });
+    } else {
+      navigate({ to: "/auth" });
     }
-    setSelected(tier);
   }
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleCityNgo() {
+    const { data } = await supabase.auth.getUser();
+    if (!data.user) {
+      toast.info("Please sign in to subscribe.");
+      navigate({ to: "/auth" });
+      return;
+    }
+    try {
+      await openCheckout({
+        priceId: CITY_NGO[billing].priceId,
+        customerEmail: data.user.email ?? undefined,
+        customData: { userId: data.user.id, plan: billing },
+        successUrl: `${window.location.origin}/dashboard?checkout=success`,
+      });
+    } catch (e) {
+      console.error(e);
+      toast.error("Could not open checkout. Please try again.");
+    }
+  }
+
+  function handleSalesSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!selected) return;
     const fd = new FormData(e.currentTarget);
     const name = String(fd.get("name") ?? "").trim();
     const email = String(fd.get("email") ?? "").trim();
@@ -123,14 +97,12 @@ function PricingPage() {
     setSubmitting(true);
     setTimeout(() => {
       setSubmitting(false);
-      setSelected(null);
-      toast.success(
-        selected.action === "trial"
-          ? `Trial requested for ${org}. We'll email ${email} within a business day.`
-          : `Thanks ${name}! Our sales team will reach out to ${email}.`,
-      );
+      setSalesOpen(false);
+      toast.success(`Thanks ${name}! Our team will reach out to ${email}.`);
     }, 600);
   }
+
+  const cityNgo = CITY_NGO[billing];
 
   return (
     <PageShell>
@@ -152,81 +124,133 @@ function PricingPage() {
             </span>
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-slate-400">
-            Citizens will always use CivicPulse for free. Governments and NGOs pay for the analytics
-            and accountability tooling on top.
+            Citizens will always use CivicPulse for free. Governments and NGOs pay for the
+            analytics and accountability tooling on top.
           </p>
-        </div>
 
-        <div className="mt-14 grid gap-6 md:grid-cols-3">
-          {tiers.map((t) => (
-            <div key={t.name} className="group relative [perspective:1000px]">
-              <div
-                className={`absolute -inset-0.5 rounded-2xl bg-gradient-to-br ${t.hue} opacity-40 blur-xl transition group-hover:opacity-80`}
-              />
-              <div
-                className={`relative flex h-full flex-col rounded-2xl border ${
-                  t.highlight ? "border-cyan-400/40" : "border-white/10"
-                } bg-white/[0.03] p-8 backdrop-blur-xl transition-transform duration-500 ease-out group-hover:[transform:rotateX(4deg)_rotateY(-3deg)_translateY(-6px)]`}
+          {/* Billing toggle */}
+          <div className="mt-8 inline-flex items-center rounded-full border border-white/10 bg-white/5 p-1 backdrop-blur">
+            {(["monthly", "yearly"] as const).map((b) => (
+              <button
+                key={b}
+                onClick={() => setBilling(b)}
+                className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
+                  billing === b
+                    ? "bg-white text-slate-950 shadow"
+                    : "text-slate-300 hover:text-white"
+                }`}
               >
-                {t.highlight && (
-                  <span className="absolute -top-3 right-6 rounded-full bg-gradient-to-r from-cyan-400 to-indigo-500 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white shadow-lg">
-                    Most popular
+                {b === "monthly" ? "Monthly" : "Yearly"}
+                {b === "yearly" && (
+                  <span className="ml-2 rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+                    -20%
                   </span>
                 )}
-                <h3 className="text-lg font-semibold text-white">{t.name}</h3>
-                <p className="mt-3 text-4xl font-extrabold text-white">{t.price}</p>
-                <p className="mt-1 text-sm text-slate-400">{t.tagline}</p>
-                <ul className="mt-6 flex-1 space-y-3 text-sm">
-                  {t.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-slate-300">
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-cyan-300" /> {f}
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  onClick={() => handleCta(t)}
-                  className={`mt-8 w-full ${
-                    t.highlight
-                      ? "bg-white text-slate-950 hover:bg-white/90"
-                      : "border border-white/15 bg-white/5 text-white hover:bg-white/10"
-                  }`}
-                  variant={t.highlight ? "default" : "outline"}
-                >
-                  {t.cta}
-                </Button>
-              </div>
-            </div>
-          ))}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-12 grid gap-6 md:grid-cols-3">
+          {/* Citizen */}
+          <TierCard
+            hue="from-cyan-500/30 to-blue-600/10"
+            highlight={false}
+            title="Citizen"
+            price="Free"
+            suffix=""
+            tagline="Forever, for everyone."
+            features={[
+              "Unlimited reports",
+              "Photo + GPS",
+              "Public map & dashboard",
+              "Upvote & comment",
+            ]}
+            ctaLabel="Get started"
+            onCta={handleCitizen}
+          />
+
+          {/* City / NGO */}
+          <TierCard
+            hue="from-indigo-500/40 to-purple-600/20"
+            highlight
+            title="City / NGO"
+            price={cityNgo.label}
+            suffix={cityNgo.suffix}
+            tagline={
+              billing === "yearly"
+                ? "Save 20% — billed yearly."
+                : "For municipal corporations & accountability orgs."
+            }
+            features={[
+              "Everything in Citizen",
+              "Ward-level analytics & SLA tracking",
+              "CSV export & API access",
+              "Admin roles + bulk actions",
+              "Department routing",
+              "Email support",
+            ]}
+            ctaLabel={checkoutLoading ? "Opening checkout…" : "Subscribe"}
+            ctaDisabled={checkoutLoading}
+            onCta={handleCityNgo}
+          />
+
+          {/* Enterprise */}
+          <TierCard
+            hue="from-emerald-500/30 to-teal-600/10"
+            highlight={false}
+            title="Enterprise"
+            price="Custom"
+            suffix=""
+            tagline="Multi-city, custom SLAs, on-prem."
+            features={[
+              "Everything in City",
+              "SSO / SAML",
+              "Custom integrations",
+              "Dedicated success manager",
+              "99.9% uptime SLA",
+            ]}
+            ctaLabel="Contact sales"
+            onCta={() => setSalesOpen(true)}
+          />
         </div>
 
         <p className="mt-10 text-center text-xs text-slate-500">
           Prefer email?{" "}
-          <Link to="/contact" className="text-cyan-300 underline underline-offset-4 hover:text-cyan-200">
+          <Link
+            to="/contact"
+            className="text-cyan-300 underline underline-offset-4 hover:text-cyan-200"
+          >
             Reach us directly
           </Link>
           .
         </p>
       </main>
 
-      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
+      <Dialog open={salesOpen} onOpenChange={setSalesOpen}>
         <DialogContent className="border-white/10 bg-slate-950 text-slate-100">
           <DialogHeader>
-            <DialogTitle>
-              {selected?.action === "trial" ? "Start your free trial" : "Talk to sales"}
-            </DialogTitle>
+            <DialogTitle>Talk to sales</DialogTitle>
             <DialogDescription className="text-slate-400">
-              {selected?.name} — {selected?.price}. Tell us about your organisation and we'll be in
-              touch within one business day.
+              Enterprise — Custom pricing. Tell us about your organisation and we'll be in touch
+              within one business day.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSalesSubmit} className="space-y-4">
             <div className="grid gap-2">
               <Label htmlFor="name">Your name</Label>
               <Input id="name" name="name" required maxLength={100} className="bg-white/5" />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="email">Work email</Label>
-              <Input id="email" name="email" type="email" required maxLength={255} className="bg-white/5" />
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                required
+                maxLength={255}
+                className="bg-white/5"
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="org">Organisation / city</Label>
@@ -240,18 +264,90 @@ function PricingPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setSelected(null)}
+                onClick={() => setSalesOpen(false)}
                 className="border-white/15 bg-transparent text-white hover:bg-white/10"
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={submitting} className="bg-white text-slate-950 hover:bg-white/90">
-                {submitting ? "Submitting…" : selected?.action === "trial" ? "Request trial" : "Contact sales"}
+              <Button
+                type="submit"
+                disabled={submitting}
+                className="bg-white text-slate-950 hover:bg-white/90"
+              >
+                {submitting ? "Submitting…" : "Contact sales"}
               </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
     </PageShell>
+  );
+}
+
+function TierCard({
+  hue,
+  highlight,
+  title,
+  price,
+  suffix,
+  tagline,
+  features,
+  ctaLabel,
+  ctaDisabled,
+  onCta,
+}: {
+  hue: string;
+  highlight: boolean;
+  title: string;
+  price: string;
+  suffix: string;
+  tagline: string;
+  features: string[];
+  ctaLabel: string;
+  ctaDisabled?: boolean;
+  onCta: () => void;
+}) {
+  return (
+    <div className="group relative [perspective:1000px]">
+      <div
+        className={`absolute -inset-0.5 rounded-2xl bg-gradient-to-br ${hue} opacity-40 blur-xl transition group-hover:opacity-80`}
+      />
+      <div
+        className={`relative flex h-full flex-col rounded-2xl border ${
+          highlight ? "border-cyan-400/40" : "border-white/10"
+        } bg-white/[0.03] p-8 backdrop-blur-xl transition-transform duration-500 ease-out group-hover:[transform:rotateX(4deg)_rotateY(-3deg)_translateY(-6px)]`}
+      >
+        {highlight && (
+          <span className="absolute -top-3 right-6 rounded-full bg-gradient-to-r from-cyan-400 to-indigo-500 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white shadow-lg">
+            Most popular
+          </span>
+        )}
+        <h3 className="text-lg font-semibold text-white">{title}</h3>
+        <p className="mt-3 text-4xl font-extrabold text-white">
+          {price}
+          {suffix && <span className="text-lg font-medium text-slate-400">{suffix}</span>}
+        </p>
+        <p className="mt-1 text-sm text-slate-400">{tagline}</p>
+        <ul className="mt-6 flex-1 space-y-3 text-sm">
+          {features.map((f) => (
+            <li key={f} className="flex items-start gap-2 text-slate-300">
+              <Check className="mt-0.5 h-4 w-4 shrink-0 text-cyan-300" /> {f}
+            </li>
+          ))}
+        </ul>
+        <Button
+          onClick={onCta}
+          disabled={ctaDisabled}
+          className={`mt-8 w-full ${
+            highlight
+              ? "bg-white text-slate-950 hover:bg-white/90"
+              : "border border-white/15 bg-white/5 text-white hover:bg-white/10"
+          }`}
+          variant={highlight ? "default" : "outline"}
+        >
+          {ctaLabel}
+        </Button>
+      </div>
+    </div>
   );
 }
