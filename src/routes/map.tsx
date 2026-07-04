@@ -13,6 +13,9 @@ import {
   Clock,
   Radio,
   Crosshair,
+  Navigation,
+  LocateFixed,
+
 } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 
