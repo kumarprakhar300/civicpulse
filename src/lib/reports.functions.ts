@@ -7,6 +7,33 @@ function pub() {
   });
 }
 
+// Mint short-lived signed URLs for private report-photos paths.
+// Accepts full URLs (legacy) untouched.
+async function signPhotoUrls<T extends { photo_url?: string | null }>(
+  rows: T[],
+): Promise<T[]> {
+  const paths = Array.from(
+    new Set(
+      rows
+        .map((r) => r.photo_url)
+        .filter((v): v is string => !!v && !/^https?:\/\//i.test(v)),
+    ),
+  );
+  if (paths.length === 0) return rows;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data, error } = await supabaseAdmin.storage
+    .from("report-photos")
+    .createSignedUrls(paths, 3600);
+  if (error || !data) return rows.map((r) => ({ ...r, photo_url: null }));
+  const map = new Map<string, string | null>();
+  for (const item of data) map.set(item.path ?? "", item.signedUrl ?? null);
+  return rows.map((r) =>
+    r.photo_url && !/^https?:\/\//i.test(r.photo_url)
+      ? { ...r, photo_url: map.get(r.photo_url) ?? null }
+      : r,
+  );
+}
+
 export const getPublicReports = createServerFn({ method: "GET" }).handler(async () => {
   const { data, error } = await pub()
     .from("reports")
@@ -15,7 +42,7 @@ export const getPublicReports = createServerFn({ method: "GET" }).handler(async 
     )
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return data ?? [];
+  return await signPhotoUrls(data ?? []);
 });
 
 export const getPublicReport = createServerFn({ method: "GET" })
@@ -42,8 +69,9 @@ export const getPublicReport = createServerFn({ method: "GET" })
         .order("changed_at", { ascending: true }),
     ]);
     if (report.error) throw report.error;
+    const [signed] = report.data ? await signPhotoUrls([report.data]) : [null];
     return {
-      report: report.data,
+      report: signed,
       comments: comments.data ?? [],
       history: history.data ?? [],
     };

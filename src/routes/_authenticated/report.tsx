@@ -117,8 +117,8 @@ function ReportPage() {
           return;
         }
 
-        const { data: urlData } = supabase.storage.from("report-photos").getPublicUrl(fileName);
-        photoUrl = urlData.publicUrl;
+        // Store the storage object path; the server mints short-lived signed URLs on read.
+        photoUrl = fileName;
       }
 
       const { error: insertError } = await (supabase as any)
