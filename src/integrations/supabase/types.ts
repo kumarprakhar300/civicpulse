@@ -193,8 +193,11 @@ export type Database = {
           longitude: number
           photo_url: string | null
           priority_score: number
+          resolution_photo_url: string | null
           resolved_at: string | null
           severity: number | null
+          sla_due_at: string | null
+          sla_hours: number | null
           status: string
           title: string
           updated_at: string
@@ -216,8 +219,11 @@ export type Database = {
           longitude: number
           photo_url?: string | null
           priority_score?: number
+          resolution_photo_url?: string | null
           resolved_at?: string | null
           severity?: number | null
+          sla_due_at?: string | null
+          sla_hours?: number | null
           status?: string
           title: string
           updated_at?: string
@@ -239,8 +245,11 @@ export type Database = {
           longitude?: number
           photo_url?: string | null
           priority_score?: number
+          resolution_photo_url?: string | null
           resolved_at?: string | null
           severity?: number | null
+          sla_due_at?: string | null
+          sla_hours?: number | null
           status?: string
           title?: string
           updated_at?: string
@@ -321,6 +330,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      compute_sla_hours: {
+        Args: { _issue_type: string; _severity: number }
+        Returns: number
+      }
       has_active_subscription: {
         Args: { check_env?: string; user_uuid: string }
         Returns: boolean
@@ -350,6 +363,36 @@ export type Database = {
           status: string
           title: string
           upvote_count: number
+        }[]
+      }
+      top_citizens: {
+        Args: { _limit?: number }
+        Returns: {
+          reports_count: number
+          reputation: number
+          upvotes_received: number
+          user_id: string
+        }[]
+      }
+      user_stats: {
+        Args: { _user_id: string }
+        Returns: {
+          comments_count: number
+          reports_count: number
+          resolved_count: number
+          upvotes_received: number
+        }[]
+      }
+      ward_scorecards: {
+        Args: never
+        Returns: {
+          avg_resolution_hours: number
+          on_time_rate: number
+          open_count: number
+          overdue: number
+          resolved: number
+          total: number
+          ward: string
         }[]
       }
     }

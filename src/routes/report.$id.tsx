@@ -9,8 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, MapPin, ThumbsUp, Loader2, Clock } from "lucide-react";
+import { ArrowLeft, MapPin, ThumbsUp, Loader2, Clock, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { SlaBadge } from "@/components/SlaBadge";
 
 export const Route = createFileRoute("/report/$id")({
   head: () => ({
@@ -124,6 +125,7 @@ function ReportDetailPage() {
                 </Badge>
                 {r.ward && <Badge variant="outline">{r.ward}</Badge>}
                 {r.department && <Badge variant="outline">{r.department}</Badge>}
+                <SlaBadge dueAt={r.sla_due_at} status={r.status} resolvedAt={r.resolved_at} />
               </div>
             </div>
             <Button onClick={handleVote} variant="outline" className="gap-2">
@@ -132,12 +134,28 @@ function ReportDetailPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {r.photo_url && (
-              <img
-                src={r.photo_url}
-                alt=""
-                className="w-full max-h-96 rounded-md object-cover"
-                loading="lazy"
-              />
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-1">Reported</p>
+                <img
+                  src={r.photo_url}
+                  alt=""
+                  className="w-full max-h-96 rounded-md object-cover"
+                  loading="lazy"
+                />
+              </div>
+            )}
+            {r.resolution_photo_url && (
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-green-600" /> Resolved — proof photo
+                </p>
+                <img
+                  src={r.resolution_photo_url}
+                  alt="After resolution"
+                  className="w-full max-h-96 rounded-md object-cover"
+                  loading="lazy"
+                />
+              </div>
             )}
             {r.description && <p className="text-sm">{r.description}</p>}
             <p className="text-xs text-muted-foreground">

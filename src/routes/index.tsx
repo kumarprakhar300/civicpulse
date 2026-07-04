@@ -69,6 +69,8 @@ function LandingPage() {
           </Link>
           <nav className="hidden items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2 py-1 backdrop-blur-xl md:flex">
             <NavLink to="/map" label="Map" />
+            <NavLink to="/feed" label="Feed" />
+            <NavLink to="/leaderboard" label="Leaderboard" />
             <NavLink to="/dashboard" label="Dashboard" />
             <NavLink to="/pricing" label="Pricing" />
             <NavLink to="/about" label="About" />

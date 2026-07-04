@@ -6,11 +6,14 @@ import {
   getHotspotSummary,
   draftReportUpdate,
   sendReportUpdate,
+  adminResolveWithProof,
 } from "@/lib/admin-ai.functions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { SlaBadge } from "@/components/SlaBadge";
 import {
   Select,
   SelectContent,
@@ -25,7 +28,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Sparkles, Flame, Loader2, Send, Wand2, TrendingUp } from "lucide-react";
+import { Sparkles, Flame, Loader2, Send, Wand2, TrendingUp, CheckCircle2, Camera } from "lucide-react";
 import { toast } from "sonner";
 
 type QueueItem = {
@@ -40,6 +43,7 @@ type QueueItem = {
   upvote_count: number;
   ai_summary: string | null;
   created_at: string;
+  sla_due_at?: string | null;
 };
 
 type Summary = {
@@ -69,6 +73,39 @@ export function AdminAiCopilot() {
   const [draftSubject, setDraftSubject] = useState("");
   const [draftMessage, setDraftMessage] = useState("");
   const [sending, setSending] = useState(false);
+
+  const resolveFn = useServerFn(adminResolveWithProof);
+  const [resolveOpen, setResolveOpen] = useState(false);
+  const [resolveFor, setResolveFor] = useState<QueueItem | null>(null);
+  const [resolveFile, setResolveFile] = useState<string | null>(null);
+  const [resolving, setResolving] = useState(false);
+
+  async function onResolveFile(file: File) {
+    const reader = new FileReader();
+    reader.onload = () => setResolveFile(reader.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  function openResolve(item: QueueItem) {
+    setResolveFor(item);
+    setResolveFile(null);
+    setResolveOpen(true);
+  }
+
+  async function submitResolve() {
+    if (!resolveFor || !resolveFile) return;
+    setResolving(true);
+    try {
+      await resolveFn({ data: { reportId: resolveFor.id, photoDataUrl: resolveFile } });
+      toast.success("Marked resolved with proof photo");
+      setResolveOpen(false);
+      setQueue((q) => q.filter((r) => r.id !== resolveFor.id));
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to resolve");
+    } finally {
+      setResolving(false);
+    }
+  }
 
   useEffect(() => {
     (async () => {
@@ -266,6 +303,7 @@ export function AdminAiCopilot() {
                       </Badge>
                       <Badge variant="secondary">{r.status}</Badge>
                       {r.ward && <Badge variant="outline">{r.ward}</Badge>}
+                      <SlaBadge dueAt={r.sla_due_at ?? null} status={r.status} />
                       <span className="text-xs text-muted-foreground">
                         ▲ {r.upvote_count}
                       </span>
@@ -276,15 +314,26 @@ export function AdminAiCopilot() {
                       </p>
                     )}
                   </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => openDraft(r)}
-                    className="gap-1"
-                  >
-                    <Wand2 className="h-3.5 w-3.5" />
-                    Draft update
-                  </Button>
+                  <div className="flex flex-col gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => openDraft(r)}
+                      className="gap-1"
+                    >
+                      <Wand2 className="h-3.5 w-3.5" />
+                      Draft update
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="default"
+                      onClick={() => openResolve(r)}
+                      className="gap-1"
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      Resolve
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -364,6 +413,59 @@ export function AdminAiCopilot() {
                 <Send className="h-4 w-4" />
               )}
               Send to citizen
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Resolve-with-proof dialog */}
+      <Dialog open={resolveOpen} onOpenChange={setResolveOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Resolve with proof photo</DialogTitle>
+          </DialogHeader>
+          {resolveFor && (
+            <div className="space-y-3">
+              <div className="rounded-md bg-muted p-3 text-sm">
+                <p className="font-medium">{resolveFor.title}</p>
+                <p className="text-xs text-muted-foreground">{resolveFor.issue_type}</p>
+              </div>
+              <label className="text-xs font-medium flex items-center gap-1">
+                <Camera className="h-3.5 w-3.5" /> After / fix photo (required)
+              </label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) onResolveFile(f);
+                }}
+              />
+              {resolveFile && (
+                <img
+                  src={resolveFile}
+                  alt="Proof preview"
+                  className="w-full max-h-56 rounded-md object-cover"
+                />
+              )}
+              <p className="text-xs text-muted-foreground">
+                Proof photos build citizen trust and show up on the public report page.
+              </p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setResolveOpen(false)}>Cancel</Button>
+            <Button
+              onClick={submitResolve}
+              disabled={resolving || !resolveFile}
+              className="gap-1"
+            >
+              {resolving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4" />
+              )}
+              Confirm resolved
             </Button>
           </DialogFooter>
         </DialogContent>
