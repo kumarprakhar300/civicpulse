@@ -1,15 +1,18 @@
 import { createServerFn } from "@tanstack/react-start";
-import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
-function pub() {
-  return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
-    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
-  });
+// These analytics helpers wrap SECURITY DEFINER RPCs that are no longer
+// callable by anon/authenticated roles. We invoke them through the trusted
+// service-role client on the server so the aggregates stay available to
+// public pages without exposing the underlying RPCs to end users.
+async function admin() {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return supabaseAdmin;
 }
 
 export const getWardScorecards = createServerFn({ method: "GET" }).handler(async () => {
-  const { data, error } = await pub().rpc("ward_scorecards" as any);
+  const sb = await admin();
+  const { data, error } = await sb.rpc("ward_scorecards" as any);
   if (error) throw new Error(error.message);
   return (data ?? []) as Array<{
     ward: string;
@@ -23,7 +26,8 @@ export const getWardScorecards = createServerFn({ method: "GET" }).handler(async
 });
 
 export const getTopCitizens = createServerFn({ method: "GET" }).handler(async () => {
-  const { data, error } = await pub().rpc("top_citizens" as any, { _limit: 10 });
+  const sb = await admin();
+  const { data, error } = await sb.rpc("top_citizens" as any, { _limit: 10 });
   if (error) throw new Error(error.message);
   return (data ?? []) as Array<{
     user_id: string;
@@ -36,7 +40,8 @@ export const getTopCitizens = createServerFn({ method: "GET" }).handler(async ()
 export const getUserStats = createServerFn({ method: "POST" })
   .inputValidator((d: { userId: string }) => z.object({ userId: z.string().uuid() }).parse(d))
   .handler(async ({ data }) => {
-    const { data: rows, error } = await pub().rpc("user_stats" as any, { _user_id: data.userId });
+    const sb = await admin();
+    const { data: rows, error } = await sb.rpc("user_stats" as any, { _user_id: data.userId });
     if (error) throw new Error(error.message);
     const s = (rows ?? [])[0] ?? {
       reports_count: 0,
