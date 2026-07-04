@@ -6,11 +6,14 @@ import {
   getHotspotSummary,
   draftReportUpdate,
   sendReportUpdate,
+  adminResolveWithProof,
 } from "@/lib/admin-ai.functions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { SlaBadge } from "@/components/SlaBadge";
 import {
   Select,
   SelectContent,
