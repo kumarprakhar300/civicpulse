@@ -77,7 +77,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { name: "theme-color", content: "#030712" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "CivicPulse" },
       { title: "CivicPulse — Report civic issues, see change happen" },
       {
         name: "description",
@@ -90,21 +95,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content: "Hyperlocal civic issue reporter with public analytics.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "CivicPulse" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "CivicPulse — Report civic issues, see change happen" },
-      { name: "description", content: "Hello World Hub is a simple application that displays \"Hello World.\"" },
-      { property: "og:description", content: "Hello World Hub is a simple application that displays \"Hello World.\"" },
-      { name: "twitter:description", content: "Hello World Hub is a simple application that displays \"Hello World.\"" },
+      { name: "twitter:description", content: "Hyperlocal civic issue reporter with public analytics." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a014e455-62e0-4a83-ae7f-f6678dde9feb/id-preview-6994282e--d249a4d5-4812-4263-b2b2-443949d1d59a.lovable.app-1783057724517.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a014e455-62e0-4a83-ae7f-f6678dde9feb/id-preview-6994282e--d249a4d5-4812-4263-b2b2-443949d1d59a.lovable.app-1783057724517.png" },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "icon", type: "image/png", sizes: "192x192", href: "/app-icon-192.png" },
+      { rel: "icon", type: "image/png", sizes: "512x512", href: "/app-icon-512.png" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
     ],
+
   }),
   shellComponent: RootShell,
   component: RootComponent,
