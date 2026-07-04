@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      internal_alerts: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          message: string
+          meta: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          message: string
+          meta?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          message?: string
+          meta?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -292,7 +319,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "citizen" | "admin" | "ngo_viewer"
+      app_role: "citizen" | "admin" | "ngo_viewer" | "city_ngo_admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -420,7 +447,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["citizen", "admin", "ngo_viewer"],
+      app_role: ["citizen", "admin", "ngo_viewer", "city_ngo_admin"],
     },
   },
 } as const
