@@ -42,11 +42,18 @@ interface Report {
 export default function MapView({
   reports,
   selectedId,
+  userLocation,
+  clickedPoint,
+  onMapClick,
 }: {
   reports: Report[];
   filter: string;
   selectedId?: string | null;
+  userLocation?: { lat: number; lng: number } | null;
+  clickedPoint?: { lat: number; lng: number } | null;
+  onMapClick?: (lat: number, lng: number) => void;
 }) {
+
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<L.Map | null>(null);
   const markersLayer = useRef<L.LayerGroup | null>(null);
