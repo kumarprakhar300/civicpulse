@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
-import { adminUpdateReport, adminBulkStatus, adminExportCsv } from "@/lib/reports-auth.functions";
+import { adminUpdateReport, adminBulkStatus, adminExportCsv, adminListReports } from "@/lib/reports-auth.functions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -44,6 +44,7 @@ function AdminPage() {
   const updateFn = useServerFn(adminUpdateReport);
   const bulkFn = useServerFn(adminBulkStatus);
   const exportFn = useServerFn(adminExportCsv);
+  const listFn = useServerFn(adminListReports);
 
   useEffect(() => {
     (async () => {
@@ -61,12 +62,12 @@ function AdminPage() {
   }, []);
 
   async function loadReports() {
-    const { data, error } = await (supabase as any)
-      .from("reports")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) toast.error(error.message);
-    else setReports(data || []);
+    try {
+      const data = await listFn();
+      setReports(data || []);
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to load");
+    }
   }
 
   const filtered = useMemo(() => {
