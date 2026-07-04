@@ -190,6 +190,8 @@ function MapPage() {
                 {s.label}
               </button>
             ))}
+          </div>
+
           <button
             onClick={locateMe}
             title="Use my live location"
@@ -198,9 +200,9 @@ function MapPage() {
             <LocateFixed className="h-3.5 w-3.5" />
             My location
           </button>
-
         </div>
       </div>
+
 
       {/* Command center layout */}
       <div className="relative z-10 flex flex-1 gap-3 overflow-hidden p-3">
