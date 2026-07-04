@@ -417,6 +417,59 @@ export function AdminAiCopilot() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Resolve-with-proof dialog */}
+      <Dialog open={resolveOpen} onOpenChange={setResolveOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Resolve with proof photo</DialogTitle>
+          </DialogHeader>
+          {resolveFor && (
+            <div className="space-y-3">
+              <div className="rounded-md bg-muted p-3 text-sm">
+                <p className="font-medium">{resolveFor.title}</p>
+                <p className="text-xs text-muted-foreground">{resolveFor.issue_type}</p>
+              </div>
+              <label className="text-xs font-medium flex items-center gap-1">
+                <Camera className="h-3.5 w-3.5" /> After / fix photo (required)
+              </label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) onResolveFile(f);
+                }}
+              />
+              {resolveFile && (
+                <img
+                  src={resolveFile}
+                  alt="Proof preview"
+                  className="w-full max-h-56 rounded-md object-cover"
+                />
+              )}
+              <p className="text-xs text-muted-foreground">
+                Proof photos build citizen trust and show up on the public report page.
+              </p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setResolveOpen(false)}>Cancel</Button>
+            <Button
+              onClick={submitResolve}
+              disabled={resolving || !resolveFile}
+              className="gap-1"
+            >
+              {resolving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4" />
+              )}
+              Confirm resolved
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
