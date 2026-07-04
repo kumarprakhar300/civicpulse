@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { getPublicReports } from "@/lib/reports.functions";
 import { Loader2, TrendingUp, Clock, Activity, CheckCircle2 } from "lucide-react";
 import {
@@ -37,6 +38,18 @@ export const Route = createFileRoute("/dashboard")({
 const COLORS = ["#22d3ee", "#34d399", "#fbbf24", "#a78bfa", "#f472b6"];
 
 function DashboardPage() {
+  const router = useRouter();
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("checkout") === "success") {
+      toast.success("Subscription active — welcome to City / NGO!");
+      url.searchParams.delete("checkout");
+      window.history.replaceState({}, "", url.pathname + url.search);
+      router.invalidate();
+    }
+  }, [router]);
+
   const { data: reports = [], isLoading } = useQuery({
     queryKey: ["public-reports"],
     queryFn: () => getPublicReports(),
