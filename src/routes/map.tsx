@@ -107,16 +107,6 @@ function MapPage() {
     return 2 * R * Math.asin(Math.sqrt(s));
   };
 
-  const anchor = clickedPoint ?? userLocation;
-  const nearby = useMemo(() => {
-    if (!anchor) return [];
-    return (filtered as any[])
-      .map((r) => ({ ...r, _dist: distanceKm(anchor, { lat: r.latitude, lng: r.longitude }) }))
-      .sort((a, b) => a._dist - b._dist)
-      .slice(0, 20);
-  }, [filtered, anchor]);
-
-
   const filtered = useMemo(() => {
     return (reports as any[]).filter((r) => {
       if (filter !== "all" && r.issue_type !== filter) return false;
@@ -126,6 +116,15 @@ function MapPage() {
     });
   }, [reports, filter, status, q]);
 
+  const anchor = clickedPoint ?? userLocation;
+  const nearby = useMemo(() => {
+    if (!anchor) return [];
+    return (filtered as any[])
+      .map((r) => ({ ...r, _dist: distanceKm(anchor, { lat: r.latitude, lng: r.longitude }) }))
+      .sort((a, b) => a._dist - b._dist)
+      .slice(0, 20);
+  }, [filtered, anchor]);
+
   const stats = useMemo(() => {
     const total = filtered.length;
     const resolved = filtered.filter((r: any) => r.status === "resolved").length;
@@ -133,6 +132,7 @@ function MapPage() {
     const inProgress = filtered.filter((r: any) => r.status === "in_progress").length;
     return { total, resolved, open, inProgress };
   }, [filtered]);
+
 
   return (
     <PageShell fullHeight contained={false}>
