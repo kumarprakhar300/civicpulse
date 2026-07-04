@@ -57,6 +57,12 @@ export default function MapView({
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<L.Map | null>(null);
   const markersLayer = useRef<L.LayerGroup | null>(null);
+  const overlayLayer = useRef<L.LayerGroup | null>(null);
+  const onMapClickRef = useRef(onMapClick);
+  useEffect(() => {
+    onMapClickRef.current = onMapClick;
+  }, [onMapClick]);
+
 
   useEffect(() => {
     if (!mapRef.current || leafletMap.current) return;
