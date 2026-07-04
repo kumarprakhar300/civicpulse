@@ -74,6 +74,49 @@ function MapPage() {
     import("@/components/MapView").then((mod) => setMapView(() => mod.default));
   }, []);
 
+  const locateMe = () => {
+    if (!("geolocation" in navigator)) {
+      setGeoError("Geolocation not supported by this browser.");
+      return;
+    }
+    setGeoError(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setClickedPoint({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      },
+      (err) => setGeoError(err.message || "Unable to fetch location"),
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  };
+
+  useEffect(() => {
+    locateMe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // haversine distance in km
+  const distanceKm = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
+    const R = 6371;
+    const toRad = (d: number) => (d * Math.PI) / 180;
+    const dLat = toRad(b.lat - a.lat);
+    const dLng = toRad(b.lng - a.lng);
+    const s =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(s));
+  };
+
+  const anchor = clickedPoint ?? userLocation;
+  const nearby = useMemo(() => {
+    if (!anchor) return [];
+    return (filtered as any[])
+      .map((r) => ({ ...r, _dist: distanceKm(anchor, { lat: r.latitude, lng: r.longitude }) }))
+      .sort((a, b) => a._dist - b._dist)
+      .slice(0, 20);
+  }, [filtered, anchor]);
+
+
   const filtered = useMemo(() => {
     return (reports as any[]).filter((r) => {
       if (filter !== "all" && r.issue_type !== filter) return false;
