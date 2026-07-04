@@ -57,7 +57,7 @@ export function PageShell({
           </Link>
           <nav className="hidden items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2 py-1 backdrop-blur-xl md:flex">
             <ShellNavLink to="/map" label="Map" />
-            <ShellNavLink to="/feed" label="Feed" />
+            
             <ShellNavLink to="/leaderboard" label="Leaderboard" />
             <ShellNavLink to="/dashboard" label="Dashboard" />
             <ShellNavLink to="/pricing" label="Pricing" />

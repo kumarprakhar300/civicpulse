@@ -219,9 +219,9 @@ function MapPage() {
 
 
       {/* Command center layout */}
-      <div className="relative z-10 flex flex-1 gap-3 overflow-hidden p-3">
+      <div className="relative z-10 flex flex-1 flex-col gap-3 overflow-auto p-3 lg:flex-row lg:overflow-hidden">
         {/* Map */}
-        <div className="relative flex-1 overflow-hidden rounded-2xl border border-white/10 bg-slate-950/60 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.7)]">
+        <div className="relative h-[65vh] flex-shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-slate-950/60 shadow-[0_20px_60px_-20px_rgba(0,0,0,0.7)] lg:h-auto lg:flex-1 lg:flex-shrink">
           {/* Scanline overlay */}
           <div
             className="pointer-events-none absolute inset-0 z-[400] opacity-[0.08] mix-blend-screen"
@@ -283,7 +283,7 @@ function MapPage() {
         </div>
 
         {/* Sidebar: nearby + live feed */}
-        <aside className="hidden w-[360px] flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-950/60 backdrop-blur-xl lg:flex">
+        <aside className="flex w-full flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-950/60 backdrop-blur-xl lg:w-[360px] lg:overflow-hidden">
           {/* Nearby / Live location panel */}
           <div className="border-b border-white/5 bg-gradient-to-br from-cyan-500/10 to-transparent px-4 py-3">
             <div className="flex items-center justify-between">
