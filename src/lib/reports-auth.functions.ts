@@ -52,7 +52,26 @@ export const getMyReports = createServerFn({ method: "GET" })
       .eq("user_id", context.userId)
       .order("created_at", { ascending: false });
     if (error) throw error;
-    return data ?? [];
+    const rows = data ?? [];
+    const paths = Array.from(
+      new Set(
+        rows
+          .map((r: any) => r.photo_url as string | null)
+          .filter((v): v is string => !!v && !/^https?:\/\//i.test(v)),
+      ),
+    );
+    if (paths.length === 0) return rows;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: signed } = await supabaseAdmin.storage
+      .from("report-photos")
+      .createSignedUrls(paths, 3600);
+    const map = new Map<string, string | null>();
+    for (const s of signed ?? []) map.set(s.path ?? "", s.signedUrl ?? null);
+    return rows.map((r: any) =>
+      r.photo_url && !/^https?:\/\//i.test(r.photo_url)
+        ? { ...r, photo_url: map.get(r.photo_url) ?? null }
+        : r,
+    );
   });
 
 export const getMyNotifications = createServerFn({ method: "GET" })
