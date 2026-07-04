@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { MapPin, Loader2, ShieldAlert, Download } from "lucide-react";
 import { toast } from "sonner";
+import { AdminAiCopilot } from "@/components/AdminAiCopilot";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
