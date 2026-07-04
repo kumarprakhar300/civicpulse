@@ -125,6 +125,7 @@ function ReportDetailPage() {
                 </Badge>
                 {r.ward && <Badge variant="outline">{r.ward}</Badge>}
                 {r.department && <Badge variant="outline">{r.department}</Badge>}
+                <SlaBadge dueAt={r.sla_due_at} status={r.status} resolvedAt={r.resolved_at} />
               </div>
             </div>
             <Button onClick={handleVote} variant="outline" className="gap-2">
