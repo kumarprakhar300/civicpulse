@@ -1,0 +1,16 @@
+{
+  "name": "CivicPulse — Report civic issues",
+  "short_name": "CivicPulse",
+  "description": "Report potholes, garbage, and broken streetlights with photo + GPS. Public dashboards hold cities accountable.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#030712",
+  "theme_color": "#030712",
+  "categories": ["utilities", "government", "productivity"],
+  "icons": [
+    { "src": "/app-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/app-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
