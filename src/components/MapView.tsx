@@ -58,6 +58,7 @@ export default function MapView({
   const leafletMap = useRef<L.Map | null>(null);
   const markersLayer = useRef<L.LayerGroup | null>(null);
   const overlayLayer = useRef<L.LayerGroup | null>(null);
+  const markerById = useRef<Map<string, L.Marker>>(new Map());
   const onMapClickRef = useRef(onMapClick);
   useEffect(() => {
     onMapClickRef.current = onMapClick;
