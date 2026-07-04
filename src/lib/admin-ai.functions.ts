@@ -19,7 +19,7 @@ export const getPriorityQueue = createServerFn({ method: "GET" })
     const { data, error } = await context.supabase
       .from("reports")
       .select(
-        "id, title, issue_type, status, ward, department, severity, priority_score, upvote_count, ai_summary, created_at, latitude, longitude",
+        "id, title, issue_type, status, ward, department, severity, priority_score, upvote_count, ai_summary, created_at, latitude, longitude, sla_due_at",
       )
       .neq("status", "resolved")
       .order("priority_score", { ascending: false, nullsFirst: false })
