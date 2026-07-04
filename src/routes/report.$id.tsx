@@ -134,12 +134,28 @@ function ReportDetailPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {r.photo_url && (
-              <img
-                src={r.photo_url}
-                alt=""
-                className="w-full max-h-96 rounded-md object-cover"
-                loading="lazy"
-              />
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-1">Reported</p>
+                <img
+                  src={r.photo_url}
+                  alt=""
+                  className="w-full max-h-96 rounded-md object-cover"
+                  loading="lazy"
+                />
+              </div>
+            )}
+            {r.resolution_photo_url && (
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-1 flex items-center gap-1">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-green-600" /> Resolved — proof photo
+                </p>
+                <img
+                  src={r.resolution_photo_url}
+                  alt="After resolution"
+                  className="w-full max-h-96 rounded-md object-cover"
+                  loading="lazy"
+                />
+              </div>
             )}
             {r.description && <p className="text-sm">{r.description}</p>}
             <p className="text-xs text-muted-foreground">
