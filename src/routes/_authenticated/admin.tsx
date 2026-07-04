@@ -44,6 +44,7 @@ function AdminPage() {
   const updateFn = useServerFn(adminUpdateReport);
   const bulkFn = useServerFn(adminBulkStatus);
   const exportFn = useServerFn(adminExportCsv);
+  const listFn = useServerFn(adminListReports);
 
   useEffect(() => {
     (async () => {
@@ -61,12 +62,12 @@ function AdminPage() {
   }, []);
 
   async function loadReports() {
-    const { data, error } = await (supabase as any)
-      .from("reports")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) toast.error(error.message);
-    else setReports(data || []);
+    try {
+      const data = await listFn();
+      setReports(data || []);
+    } catch (e: any) {
+      toast.error(e.message ?? "Failed to load");
+    }
   }
 
   const filtered = useMemo(() => {
