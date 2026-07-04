@@ -168,6 +168,10 @@ function AdminPage() {
       <main className="mx-auto max-w-7xl px-6 py-10 space-y-6">
         <h1 className="text-3xl font-bold">Report management</h1>
 
+        <AdminAiCopilot />
+
+
+
         {/* Filters + bulk actions */}
         <Card>
           <CardContent className="flex flex-wrap items-center gap-3 p-4">
