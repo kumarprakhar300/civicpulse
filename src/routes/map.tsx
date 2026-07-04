@@ -65,10 +65,24 @@ function MapPage() {
   }> | null>(null);
 
 
-  const { data: reports = [], isLoading } = useQuery({
+  const { data: allReports = [], isLoading } = useQuery({
     queryKey: ["public-reports"],
     queryFn: () => getPublicReports(),
   });
+  // India-only: bbox roughly covering mainland India + islands
+  const reports = useMemo(
+    () =>
+      allReports.filter(
+        (r: any) =>
+          typeof r.latitude === "number" &&
+          typeof r.longitude === "number" &&
+          r.latitude >= 6.5 &&
+          r.latitude <= 35.7 &&
+          r.longitude >= 68 &&
+          r.longitude <= 97.5,
+      ),
+    [allReports],
+  );
 
   useEffect(() => {
     import("@/components/MapView").then((mod) => setMapView(() => mod.default));
