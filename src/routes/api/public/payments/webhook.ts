@@ -37,8 +37,8 @@ async function notifyUserWelcome(userId: string, priceId: string) {
   });
 }
 
-async function notifyTeam(kind: string, userId: string | null, message: string, meta: Record<string, unknown>) {
-  await getSupabase().from("internal_alerts").insert({ kind, user_id: userId, message, meta });
+async function notifyTeam(kind: string, userId: string | null, message: string, meta: unknown) {
+  await getSupabase().from("internal_alerts").insert({ kind, user_id: userId, message, meta: meta as any });
 }
 
 async function handleSubscriptionCreated(data: any, env: PaddleEnv) {
@@ -85,15 +85,15 @@ async function handleSubscriptionUpdated(data: any, env: PaddleEnv) {
   const priceId = item?.price?.importMeta?.externalId;
   const productId = item?.product?.importMeta?.externalId;
 
-  const patch: Record<string, unknown> = {
+  const patch = {
     status,
     current_period_start: currentBillingPeriod?.startsAt,
     current_period_end: currentBillingPeriod?.endsAt,
     cancel_at_period_end: scheduledChange?.action === "cancel",
     updated_at: new Date().toISOString(),
+    ...(priceId ? { price_id: priceId } : {}),
+    ...(productId ? { product_id: productId } : {}),
   };
-  if (priceId) patch.price_id = priceId;
-  if (productId) patch.product_id = productId;
 
   await getSupabase()
     .from("subscriptions")
