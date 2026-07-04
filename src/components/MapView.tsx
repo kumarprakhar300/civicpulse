@@ -115,20 +115,26 @@ export default function MapView({
     if (!layer || !map) return;
 
     layer.clearLayers();
+    markerById.current.clear();
 
     if (reports.length === 0) return;
 
-    const bounds = L.latLngBounds([]);
-    let hasBounds = false;
-
     reports.forEach((report) => {
+      if (
+        typeof report.latitude !== "number" ||
+        typeof report.longitude !== "number" ||
+        Number.isNaN(report.latitude) ||
+        Number.isNaN(report.longitude)
+      ) {
+        return;
+      }
       const marker = L.marker([report.latitude, report.longitude], {
         icon: createIcon(report.issue_type),
       });
 
       const popupHtml = `
         <div style="min-width:220px;font-family:sans-serif;">
-          <h3 style="font-weight:600;font-size:14px;margin:0 0 6px 0;">${escapeHtml(report.title)}</h3>
+          <h3 style="font-weight:600;font-size:14px;margin:0 0 6px 0;">${escapeHtml(report.title) || "Untitled report"}</h3>
           <div style="display:flex;gap:6px;margin-bottom:8px;">
             <span style="font-size:10px;padding:2px 8px;border:1px solid #e2e8f0;border-radius:999px;">${report.issue_type}</span>
             <span style="font-size:10px;padding:2px 8px;border:1px solid #e2e8f0;border-radius:999px;background:${report.status === "resolved" ? "#22c55e" : report.status === "open" ? "#f1f5f9" : "#fff"};color:${report.status === "resolved" ? "#fff" : "#000"};">${report.status}</span>
@@ -141,20 +147,21 @@ export default function MapView({
 
       marker.bindPopup(popupHtml);
       marker.addTo(layer);
-      bounds.extend([report.latitude, report.longitude]);
-      hasBounds = true;
+      markerById.current.set(report.id, marker);
     });
-
-    // Do NOT auto-fit — keep the India view stable. User pans/zooms.
   }, [reports]);
 
-  // Pan to a selected report when the sidebar clicks one
+  // Pan to a selected report when the sidebar clicks one, and open its popup
   useEffect(() => {
     const map = leafletMap.current;
     if (!map || !selectedId) return;
     const r = reports.find((x) => x.id === selectedId);
     if (!r) return;
     map.flyTo([r.latitude, r.longitude], 14, { duration: 0.8 });
+    const marker = markerById.current.get(selectedId);
+    if (marker) {
+      setTimeout(() => marker.openPopup(), 850);
+    }
   }, [selectedId, reports]);
 
   // User location + clicked point overlays
