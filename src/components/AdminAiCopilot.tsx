@@ -28,7 +28,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Sparkles, Flame, Loader2, Send, Wand2, TrendingUp } from "lucide-react";
+import { Sparkles, Flame, Loader2, Send, Wand2, TrendingUp, CheckCircle2, Camera } from "lucide-react";
 import { toast } from "sonner";
 
 type QueueItem = {
@@ -43,6 +43,7 @@ type QueueItem = {
   upvote_count: number;
   ai_summary: string | null;
   created_at: string;
+  sla_due_at?: string | null;
 };
 
 type Summary = {
