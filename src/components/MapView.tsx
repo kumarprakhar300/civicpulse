@@ -179,37 +179,60 @@ export default function MapView({
     if (userLocation) {
       const youIcon = L.divIcon({
         className: "user-loc-marker",
-        html: `<div style="position:relative;width:20px;height:20px;">
-          <div style="position:absolute;inset:0;border-radius:50%;background:#22d3ee;opacity:0.35;animation:pulse 2s infinite;"></div>
-          <div style="position:absolute;inset:5px;border-radius:50%;background:#06b6d4;border:2px solid white;box-shadow:0 0 10px #22d3ee;"></div>
-        </div>`,
-        iconSize: [20, 20],
-        iconAnchor: [10, 10],
+        html: `<div style="position:relative;width:36px;height:36px;">
+          <div style="position:absolute;inset:0;border-radius:50%;background:#22d3ee;opacity:0.25;animation:civicPulse 1.8s ease-out infinite;"></div>
+          <div style="position:absolute;inset:8px;border-radius:50%;background:#22d3ee;opacity:0.55;"></div>
+          <div style="position:absolute;inset:12px;border-radius:50%;background:#06b6d4;border:3px solid white;box-shadow:0 0 14px #22d3ee, 0 0 4px rgba(0,0,0,0.6);"></div>
+        </div>
+        <style>@keyframes civicPulse{0%{transform:scale(0.6);opacity:0.7}100%{transform:scale(1.6);opacity:0}}</style>`,
+        iconSize: [36, 36],
+        iconAnchor: [18, 18],
       });
-      L.marker([userLocation.lat, userLocation.lng], { icon: youIcon })
+      L.marker([userLocation.lat, userLocation.lng], {
+        icon: youIcon,
+        zIndexOffset: 10000,
+        interactive: true,
+      })
         .bindPopup("<b>You are here</b>")
         .addTo(layer);
+      L.circle([userLocation.lat, userLocation.lng], {
+        radius: 800,
+        color: "#22d3ee",
+        weight: 2,
+        opacity: 0.7,
+        fillColor: "#22d3ee",
+        fillOpacity: 0.06,
+      }).addTo(layer);
     }
 
     if (clickedPoint) {
       const pinIcon = L.divIcon({
         className: "clicked-marker",
-        html: `<div style="width:16px;height:16px;border-radius:50%;background:#f59e0b;border:3px solid white;box-shadow:0 0 12px #f59e0b;"></div>`,
-        iconSize: [16, 16],
-        iconAnchor: [8, 8],
+        html: `<div style="position:relative;width:34px;height:44px;transform:translateY(-6px);">
+          <svg viewBox="0 0 24 32" width="34" height="44" style="filter:drop-shadow(0 3px 6px rgba(0,0,0,0.6));">
+            <path d="M12 0C5.4 0 0 5.4 0 12c0 8 12 20 12 20s12-12 12-20C24 5.4 18.6 0 12 0z" fill="#f59e0b" stroke="white" stroke-width="2"/>
+            <circle cx="12" cy="12" r="4" fill="white"/>
+          </svg>
+        </div>`,
+        iconSize: [34, 44],
+        iconAnchor: [17, 40],
       });
-      L.marker([clickedPoint.lat, clickedPoint.lng], { icon: pinIcon })
+      L.marker([clickedPoint.lat, clickedPoint.lng], {
+        icon: pinIcon,
+        zIndexOffset: 10001,
+      })
         .bindPopup("<b>Selected point</b><br/>Nearby reports shown in sidebar")
         .addTo(layer);
       L.circle([clickedPoint.lat, clickedPoint.lng], {
         radius: 2000,
         color: "#f59e0b",
-        weight: 1,
-        opacity: 0.6,
+        weight: 2,
+        opacity: 0.8,
         fillColor: "#f59e0b",
-        fillOpacity: 0.08,
+        fillOpacity: 0.1,
       }).addTo(layer);
     }
+  }, [userLocation, clickedPoint]);
   }, [userLocation, clickedPoint]);
 
 
