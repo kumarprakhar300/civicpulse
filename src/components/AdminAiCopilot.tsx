@@ -303,6 +303,7 @@ export function AdminAiCopilot() {
                       </Badge>
                       <Badge variant="secondary">{r.status}</Badge>
                       {r.ward && <Badge variant="outline">{r.ward}</Badge>}
+                      <SlaBadge dueAt={r.sla_due_at ?? null} status={r.status} />
                       <span className="text-xs text-muted-foreground">
                         ▲ {r.upvote_count}
                       </span>
@@ -313,15 +314,26 @@ export function AdminAiCopilot() {
                       </p>
                     )}
                   </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => openDraft(r)}
-                    className="gap-1"
-                  >
-                    <Wand2 className="h-3.5 w-3.5" />
-                    Draft update
-                  </Button>
+                  <div className="flex flex-col gap-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => openDraft(r)}
+                      className="gap-1"
+                    >
+                      <Wand2 className="h-3.5 w-3.5" />
+                      Draft update
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="default"
+                      onClick={() => openResolve(r)}
+                      className="gap-1"
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      Resolve
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
