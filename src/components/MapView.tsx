@@ -47,14 +47,25 @@ export default function MapView({ reports }: { reports: Report[]; filter: string
   useEffect(() => {
     if (!mapRef.current || leafletMap.current) return;
 
+    // India bounds — restrict panning/zoom to India only
+    const indiaBounds = L.latLngBounds(
+      L.latLng(6.5, 68.0),   // SW
+      L.latLng(35.7, 97.5),  // NE
+    );
+
     const map = L.map(mapRef.current, {
-      center: reports.length ? [reports[0].latitude, reports[0].longitude] : [20, 0],
-      zoom: reports.length ? 12 : 2,
+      center: [22.9734, 78.6569], // Geographic center of India
+      zoom: 5,
+      minZoom: 4,
+      maxZoom: 18,
+      maxBounds: indiaBounds,
+      maxBoundsViscosity: 1.0,
     });
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      bounds: indiaBounds,
     }).addTo(map);
 
     leafletMap.current = map;
