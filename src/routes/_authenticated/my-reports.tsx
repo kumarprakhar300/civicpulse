@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, Bell, ThumbsUp } from "lucide-react";
 import { PageShell, GlassCard } from "@/components/PageShell";
+import { ReputationCard } from "@/components/ReputationCard";
 
 export const Route = createFileRoute("/_authenticated/my-reports")({
   head: () => ({
