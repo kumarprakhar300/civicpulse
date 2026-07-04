@@ -268,8 +268,82 @@ function MapPage() {
           )}
         </div>
 
-        {/* Sidebar: live reports feed */}
-        <aside className="hidden w-[340px] flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-950/60 backdrop-blur-xl lg:flex">
+        {/* Sidebar: nearby + live feed */}
+        <aside className="hidden w-[360px] flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-950/60 backdrop-blur-xl lg:flex">
+          {/* Nearby / Live location panel */}
+          <div className="border-b border-white/5 bg-gradient-to-br from-cyan-500/10 to-transparent px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-cyan-300">
+                  {clickedPoint && userLocation && (clickedPoint.lat !== userLocation.lat || clickedPoint.lng !== userLocation.lng)
+                    ? "Nearby · Selected point"
+                    : userLocation
+                      ? "Nearby · Your live location"
+                      : "Nearby"}
+                </p>
+                <p className="text-sm font-semibold text-white">
+                  {anchor
+                    ? `${anchor.lat.toFixed(4)}°, ${anchor.lng.toFixed(4)}°`
+                    : "Enable location or click the map"}
+                </p>
+              </div>
+              <button
+                onClick={locateMe}
+                title="Refresh live location"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-cyan-400/40 bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20"
+              >
+                <Navigation className="h-4 w-4" />
+              </button>
+            </div>
+            {geoError && (
+              <p className="mt-2 text-[10px] text-rose-300">{geoError}</p>
+            )}
+            {!anchor && !geoError && (
+              <p className="mt-2 text-[10px] text-slate-400">
+                Allow location access, or tap anywhere on the map to see nearby issues.
+              </p>
+            )}
+          </div>
+
+          {anchor && (
+            <div className="max-h-[45%] overflow-y-auto border-b border-white/5 p-2">
+              {nearby.length === 0 ? (
+                <div className="p-4 text-center text-xs text-slate-500">
+                  No matching reports nearby.
+                </div>
+              ) : (
+                nearby.map((r: any) => (
+                  <button
+                    key={`near-${r.id}`}
+                    onClick={() => setSelectedId(r.id)}
+                    className="mb-2 flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/[0.02] p-2.5 text-left transition hover:border-cyan-400/40 hover:bg-cyan-500/5"
+                  >
+                    <span
+                      className={`h-2 w-2 shrink-0 rounded-full ${
+                        r.issue_type === "pothole"
+                          ? "bg-rose-400"
+                          : r.issue_type === "garbage"
+                            ? "bg-emerald-400"
+                            : r.issue_type === "streetlight"
+                              ? "bg-amber-400"
+                              : "bg-slate-400"
+                      }`}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-medium text-white">{r.title}</p>
+                      <p className="text-[10px] text-slate-500 capitalize">
+                        {r.issue_type} · {r.status.replace("_", " ")}
+                      </p>
+                    </div>
+                    <span className="shrink-0 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-semibold text-cyan-200">
+                      {r._dist < 1 ? `${Math.round(r._dist * 1000)} m` : `${r._dist.toFixed(1)} km`}
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+
           <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
@@ -289,6 +363,7 @@ function MapPage() {
               <div className="p-6 text-center text-xs text-slate-500">
                 No reports match these filters.
               </div>
+
             )}
             {filtered.map((r: any) => (
               <button
