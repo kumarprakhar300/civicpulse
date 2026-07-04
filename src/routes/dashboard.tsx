@@ -20,6 +20,7 @@ import {
   Legend,
 } from "recharts";
 import { PageShell, GlassCard } from "@/components/PageShell";
+import { SubscriptionCard } from "@/components/SubscriptionCard";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -122,6 +123,8 @@ function DashboardPage() {
             How fast issues get resolved, where the hotspots are, and what breaks most.
           </p>
         </div>
+
+        <SubscriptionCard />
 
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
