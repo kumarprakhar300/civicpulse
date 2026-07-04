@@ -190,7 +190,15 @@ function MapPage() {
                 {s.label}
               </button>
             ))}
-          </div>
+          <button
+            onClick={locateMe}
+            title="Use my live location"
+            className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/40 bg-cyan-500/10 px-3 py-1.5 text-xs font-medium text-cyan-200 transition hover:bg-cyan-500/20"
+          >
+            <LocateFixed className="h-3.5 w-3.5" />
+            My location
+          </button>
+
         </div>
       </div>
 
