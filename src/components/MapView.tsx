@@ -68,12 +68,17 @@ export default function MapView({
   useEffect(() => {
     if (!mapRef.current || leafletMap.current) return;
 
+    const indiaBounds = L.latLngBounds(
+      L.latLng(6.5, 68.0),
+      L.latLng(35.7, 97.5),
+    );
     const map = L.map(mapRef.current, {
       center: [22.9734, 78.6569],
       zoom: 5,
-      minZoom: 2,
+      minZoom: 4,
       maxZoom: 18,
-      worldCopyJump: true,
+      maxBounds: indiaBounds,
+      maxBoundsViscosity: 1.0,
       zoomControl: false,
       attributionControl: false,
     });
