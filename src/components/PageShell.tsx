@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 export function PageShell({
   children,
