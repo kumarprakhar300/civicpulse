@@ -39,7 +39,14 @@ interface Report {
   description: string | null;
 }
 
-export default function MapView({ reports }: { reports: Report[]; filter: string }) {
+export default function MapView({
+  reports,
+  selectedId,
+}: {
+  reports: Report[];
+  filter: string;
+  selectedId?: string | null;
+}) {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<L.Map | null>(null);
   const markersLayer = useRef<L.LayerGroup | null>(null);
@@ -47,26 +54,36 @@ export default function MapView({ reports }: { reports: Report[]; filter: string
   useEffect(() => {
     if (!mapRef.current || leafletMap.current) return;
 
-    // India bounds — restrict panning/zoom to India only
+    // India bounds — restrict panning to India
     const indiaBounds = L.latLngBounds(
-      L.latLng(6.5, 68.0),   // SW
-      L.latLng(35.7, 97.5),  // NE
+      L.latLng(6.5, 68.0),
+      L.latLng(35.7, 97.5),
     );
 
     const map = L.map(mapRef.current, {
-      center: [22.9734, 78.6569], // Geographic center of India
+      center: [22.9734, 78.6569],
       zoom: 5,
       minZoom: 4,
       maxZoom: 18,
       maxBounds: indiaBounds,
       maxBoundsViscosity: 1.0,
+      zoomControl: false,
+      attributionControl: false,
     });
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      bounds: indiaBounds,
-    }).addTo(map);
+    L.control.zoom({ position: "topright" }).addTo(map);
+    L.control.attribution({ position: "bottomright", prefix: false }).addTo(map);
+
+    // Dark techy tiles (CartoDB Dark Matter)
+    L.tileLayer(
+      "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+      {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> · <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: "abcd",
+        maxZoom: 19,
+      },
+    ).addTo(map);
 
     leafletMap.current = map;
     markersLayer.current = L.layerGroup().addTo(map);
@@ -114,25 +131,30 @@ export default function MapView({ reports }: { reports: Report[]; filter: string
       hasBounds = true;
     });
 
-    if (hasBounds && reports.length > 1) {
-      map.fitBounds(bounds, { padding: [40, 40] });
-    } else if (hasBounds) {
-      map.setView([reports[0].latitude, reports[0].longitude], 14);
-    }
+    // Do NOT auto-fit — keep the India view stable. User pans/zooms.
   }, [reports]);
+
+  // Pan to a selected report when the sidebar clicks one
+  useEffect(() => {
+    const map = leafletMap.current;
+    if (!map || !selectedId) return;
+    const r = reports.find((x) => x.id === selectedId);
+    if (!r) return;
+    map.flyTo([r.latitude, r.longitude], 14, { duration: 0.8 });
+  }, [selectedId, reports]);
 
   return (
     <div className="relative h-full w-full">
       {reports.length === 0 && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-background/90">
-          <p className="text-muted-foreground">No reports match this filter.</p>
-          <p className="text-xs text-muted-foreground">Submit the first report to see it here.</p>
+        <div className="pointer-events-none absolute inset-x-0 top-4 z-[500] mx-auto w-fit rounded-full border border-white/10 bg-slate-950/80 px-4 py-2 text-xs text-slate-300 backdrop-blur">
+          No reports match this filter.
         </div>
       )}
-      <div ref={mapRef} style={{ height: "100%", width: "100%" }} />
+      <div ref={mapRef} style={{ height: "100%", width: "100%", background: "#0b1220" }} />
     </div>
   );
 }
+
 
 function escapeHtml(text: string | null): string {
   if (!text) return "";
