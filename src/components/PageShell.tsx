@@ -27,6 +27,7 @@ export function PageShell({
     <div
       className={`relative ${fullHeight ? "flex h-screen flex-col" : "min-h-screen"} overflow-hidden bg-[#030712] text-slate-100 antialiased`}
     >
+      <PaymentTestModeBanner />
       {/* Ambient gradient mesh */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute -left-[10%] -top-[10%] h-[60%] w-[60%] rounded-full bg-blue-600/25 blur-[140px]" />
