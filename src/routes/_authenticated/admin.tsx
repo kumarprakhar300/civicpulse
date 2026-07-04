@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
-import { adminUpdateReport, adminBulkStatus, adminExportCsv } from "@/lib/reports-auth.functions";
+import { adminUpdateReport, adminBulkStatus, adminExportCsv, adminListReports } from "@/lib/reports-auth.functions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
