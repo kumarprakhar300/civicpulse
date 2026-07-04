@@ -1,7 +1,21 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
@@ -19,14 +33,26 @@ export const Route = createFileRoute("/pricing")({
   component: PricingPage,
 });
 
-const tiers = [
+type Tier = {
+  name: string;
+  price: string;
+  tagline: string;
+  features: string[];
+  cta: string;
+  action: "signup" | "trial" | "sales";
+  highlight?: boolean;
+  hue: string;
+  ring: string;
+};
+
+const tiers: Tier[] = [
   {
     name: "Citizen",
     price: "Free",
     tagline: "Forever, for everyone.",
     features: ["Unlimited reports", "Photo + GPS", "Public map & dashboard", "Upvote & comment"],
     cta: "Get started",
-    href: "/auth",
+    action: "signup",
     hue: "from-cyan-500/30 to-blue-600/10",
     ring: "border-cyan-400/25",
   },
@@ -43,7 +69,7 @@ const tiers = [
       "Email support",
     ],
     cta: "Start free trial",
-    href: "/contact",
+    action: "trial",
     highlight: true,
     hue: "from-indigo-500/40 to-purple-600/20",
     ring: "border-indigo-400/40",
@@ -60,13 +86,52 @@ const tiers = [
       "99.9% uptime SLA",
     ],
     cta: "Contact sales",
-    href: "/contact",
+    action: "sales",
     hue: "from-emerald-500/30 to-teal-600/10",
     ring: "border-emerald-400/25",
   },
 ];
 
 function PricingPage() {
+  const navigate = useNavigate();
+  const [selected, setSelected] = useState<Tier | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleCta(tier: Tier) {
+    if (tier.action === "signup") {
+      const { data } = await supabase.auth.getUser();
+      if (data.user) {
+        toast.success("You're already on the Citizen plan — start reporting!");
+        navigate({ to: "/report" });
+      } else {
+        navigate({ to: "/auth" });
+      }
+      return;
+    }
+    setSelected(tier);
+  }
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!selected) return;
+    const fd = new FormData(e.currentTarget);
+    const name = String(fd.get("name") ?? "").trim();
+    const email = String(fd.get("email") ?? "").trim();
+    const org = String(fd.get("org") ?? "").trim();
+    if (!name || !email || !org) return toast.error("Please fill every field");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return toast.error("Invalid email");
+    setSubmitting(true);
+    setTimeout(() => {
+      setSubmitting(false);
+      setSelected(null);
+      toast.success(
+        selected.action === "trial"
+          ? `Trial requested for ${org}. We'll email ${email} within a business day.`
+          : `Thanks ${name}! Our sales team will reach out to ${email}.`,
+      );
+    }, 600);
+  }
+
   return (
     <PageShell>
       <main className="relative z-10 mx-auto max-w-6xl px-6 py-16">
@@ -118,23 +183,75 @@ function PricingPage() {
                     </li>
                   ))}
                 </ul>
-                <Link to={t.href} className="mt-8 block">
-                  <Button
-                    className={`w-full ${
-                      t.highlight
-                        ? "bg-white text-slate-950 hover:bg-white/90"
-                        : "border border-white/15 bg-white/5 text-white hover:bg-white/10"
-                    }`}
-                    variant={t.highlight ? "default" : "outline"}
-                  >
-                    {t.cta}
-                  </Button>
-                </Link>
+                <Button
+                  onClick={() => handleCta(t)}
+                  className={`mt-8 w-full ${
+                    t.highlight
+                      ? "bg-white text-slate-950 hover:bg-white/90"
+                      : "border border-white/15 bg-white/5 text-white hover:bg-white/10"
+                  }`}
+                  variant={t.highlight ? "default" : "outline"}
+                >
+                  {t.cta}
+                </Button>
               </div>
             </div>
           ))}
         </div>
+
+        <p className="mt-10 text-center text-xs text-slate-500">
+          Prefer email?{" "}
+          <Link to="/contact" className="text-cyan-300 underline underline-offset-4 hover:text-cyan-200">
+            Reach us directly
+          </Link>
+          .
+        </p>
       </main>
+
+      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
+        <DialogContent className="border-white/10 bg-slate-950 text-slate-100">
+          <DialogHeader>
+            <DialogTitle>
+              {selected?.action === "trial" ? "Start your free trial" : "Talk to sales"}
+            </DialogTitle>
+            <DialogDescription className="text-slate-400">
+              {selected?.name} — {selected?.price}. Tell us about your organisation and we'll be in
+              touch within one business day.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="name">Your name</Label>
+              <Input id="name" name="name" required maxLength={100} className="bg-white/5" />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="email">Work email</Label>
+              <Input id="email" name="email" type="email" required maxLength={255} className="bg-white/5" />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="org">Organisation / city</Label>
+              <Input id="org" name="org" required maxLength={150} className="bg-white/5" />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="notes">Anything we should know? (optional)</Label>
+              <Textarea id="notes" name="notes" rows={3} maxLength={500} className="bg-white/5" />
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setSelected(null)}
+                className="border-white/15 bg-transparent text-white hover:bg-white/10"
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={submitting} className="bg-white text-slate-950 hover:bg-white/90">
+                {submitting ? "Submitting…" : selected?.action === "trial" ? "Request trial" : "Contact sales"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </PageShell>
   );
 }
