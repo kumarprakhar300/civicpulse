@@ -100,12 +100,19 @@ export default function MapView({
 
     leafletMap.current = map;
     markersLayer.current = L.layerGroup().addTo(map);
+    overlayLayer.current = L.layerGroup().addTo(map);
+
+    map.on("click", (e: L.LeafletMouseEvent) => {
+      onMapClickRef.current?.(e.latlng.lat, e.latlng.lng);
+    });
 
     return () => {
       map.remove();
       leafletMap.current = null;
       markersLayer.current = null;
+      overlayLayer.current = null;
     };
+
   }, []);
 
   useEffect(() => {
