@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as LeaderboardRouteImport } from './routes/leaderboard'
-import { Route as FeedRouteImport } from './routes/feed'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -38,11 +37,6 @@ const MapRoute = MapRouteImport.update({
 const LeaderboardRoute = LeaderboardRouteImport.update({
   id: '/leaderboard',
   path: '/leaderboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FeedRoute = FeedRouteImport.update({
-  id: '/feed',
-  path: '/feed',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -107,7 +101,6 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
-  '/feed': typeof FeedRoute
   '/leaderboard': typeof LeaderboardRoute
   '/map': typeof MapRoute
   '/pricing': typeof PricingRoute
@@ -123,7 +116,6 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
-  '/feed': typeof FeedRoute
   '/leaderboard': typeof LeaderboardRoute
   '/map': typeof MapRoute
   '/pricing': typeof PricingRoute
@@ -141,7 +133,6 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
-  '/feed': typeof FeedRoute
   '/leaderboard': typeof LeaderboardRoute
   '/map': typeof MapRoute
   '/pricing': typeof PricingRoute
@@ -159,7 +150,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/dashboard'
-    | '/feed'
     | '/leaderboard'
     | '/map'
     | '/pricing'
@@ -175,7 +165,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/dashboard'
-    | '/feed'
     | '/leaderboard'
     | '/map'
     | '/pricing'
@@ -192,7 +181,6 @@ export interface FileRouteTypes {
     | '/auth'
     | '/contact'
     | '/dashboard'
-    | '/feed'
     | '/leaderboard'
     | '/map'
     | '/pricing'
@@ -210,7 +198,6 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
-  FeedRoute: typeof FeedRoute
   LeaderboardRoute: typeof LeaderboardRoute
   MapRoute: typeof MapRoute
   PricingRoute: typeof PricingRoute
@@ -239,13 +226,6 @@ declare module '@tanstack/react-router' {
       path: '/leaderboard'
       fullPath: '/leaderboard'
       preLoaderRoute: typeof LeaderboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/feed': {
-      id: '/feed'
-      path: '/feed'
-      fullPath: '/feed'
-      preLoaderRoute: typeof FeedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -350,7 +330,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
-  FeedRoute: FeedRoute,
   LeaderboardRoute: LeaderboardRoute,
   MapRoute: MapRoute,
   PricingRoute: PricingRoute,
@@ -360,13 +339,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

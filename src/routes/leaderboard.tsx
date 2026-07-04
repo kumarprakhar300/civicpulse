@@ -1,10 +1,18 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getWardScorecards, getTopCitizens } from "@/lib/civic.functions";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { MapPin, Trophy, TrendingDown, Clock, Users } from "lucide-react";
+import { PageShell, GlassCard } from "@/components/PageShell";
+import {
+  Trophy,
+  TrendingDown,
+  Clock,
+  Users,
+  Activity,
+  CheckCircle2,
+  Radio,
+  ShieldAlert,
+} from "lucide-react";
 
 export const Route = createFileRoute("/leaderboard")({
   head: () => ({
@@ -28,132 +36,148 @@ export const Route = createFileRoute("/leaderboard")({
 });
 
 function LeaderboardPage() {
-  const { data: wards = [] } = useQuery({
+  const { data: wards = [], isLoading: wardsLoading } = useQuery({
     queryKey: ["ward-scorecards"],
     queryFn: () => getWardScorecards(),
   });
-  const { data: citizens = [] } = useQuery({
+  const { data: citizens = [], isLoading: citizensLoading } = useQuery({
     queryKey: ["top-citizens"],
     queryFn: () => getTopCitizens(),
   });
 
-  const sortedWards = [...wards].sort(
-    (a, b) => (b.on_time_rate ?? 0) - (a.on_time_rate ?? 0),
+  const sortedWards = useMemo(
+    () => [...wards].sort((a, b) => (b.on_time_rate ?? 0) - (a.on_time_rate ?? 0)),
+    [wards],
   );
-  const laggards = [...wards]
-    .filter((w) => w.overdue > 0)
-    .sort((a, b) => b.overdue - a.overdue)
-    .slice(0, 5);
+  const laggards = useMemo(
+    () =>
+      [...wards]
+        .filter((w) => w.overdue > 0)
+        .sort((a, b) => b.overdue - a.overdue)
+        .slice(0, 5),
+    [wards],
+  );
+
+  const totals = useMemo(() => {
+    const total = wards.reduce((s, w) => s + (w.total ?? 0), 0);
+    const resolved = wards.reduce((s, w) => s + (w.resolved ?? 0), 0);
+    const open = wards.reduce((s, w) => s + (w.open_count ?? 0), 0);
+    const overdue = wards.reduce((s, w) => s + (w.overdue ?? 0), 0);
+    return { total, resolved, open, overdue };
+  }, [wards]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border/60">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <Link to="/" className="flex items-center gap-2 font-bold text-lg">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <MapPin className="h-4 w-4" />
+    <PageShell contained={false}>
+      {/* Toolbar */}
+      <div className="relative z-20 border-b border-white/5 bg-slate-950/60 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-3 px-4 py-3">
+          <div className="flex items-center gap-2">
+            <span className="relative inline-flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/70" />
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
             </span>
-            CivicPulse
-          </Link>
-          <div className="flex gap-2">
-            <Link to="/map"><Button variant="ghost" size="sm">Map</Button></Link>
-            <Link to="/feed"><Button variant="ghost" size="sm">Feed</Button></Link>
+            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-emerald-300">
+              Live · accountability grid
+            </span>
+          </div>
+          <div className="ml-auto flex flex-wrap gap-2">
+            <StatPod icon={<Activity className="h-3 w-3" />} label="Total" value={totals.total} hue="text-cyan-300 border-cyan-400/40" />
+            <StatPod icon={<Radio className="h-3 w-3" />} label="Open" value={totals.open} hue="text-rose-300 border-rose-400/40" />
+            <StatPod icon={<CheckCircle2 className="h-3 w-3" />} label="Resolved" value={totals.resolved} hue="text-emerald-300 border-emerald-400/40" />
+            <StatPod icon={<ShieldAlert className="h-3 w-3" />} label="Overdue" value={totals.overdue} hue="text-amber-300 border-amber-400/40" />
           </div>
         </div>
-      </header>
+      </div>
 
-      <main className="mx-auto max-w-6xl px-6 py-10 space-y-8">
+      <main className="mx-auto w-full max-w-[1600px] px-4 py-6 space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Public accountability</h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-cyan-300">
+            Public accountability
+          </p>
+          <h1 className="mt-1 bg-gradient-to-b from-white to-white/60 bg-clip-text text-3xl font-bold text-transparent">
+            Ward performance grid
+          </h1>
+          <p className="mt-2 text-sm text-slate-400">
             Ward-by-ward performance on citizen-reported issues. Shareable, updated in real time.
           </p>
         </div>
 
         {laggards.length > 0 && (
-          <Card className="border-destructive/40">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <TrendingDown className="h-4 w-4 text-destructive" />
+          <GlassCard className="border-rose-400/30 p-5">
+            <div className="mb-3 flex items-center gap-2">
+              <TrendingDown className="h-4 w-4 text-rose-300" />
+              <p className="text-[10px] font-bold uppercase tracking-widest text-rose-300">
                 Wards falling behind
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-                {laggards.map((w) => (
-                  <div
-                    key={w.ward}
-                    className="rounded-md border border-destructive/30 bg-destructive/5 p-3"
-                  >
-                    <p className="font-medium">{w.ward}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {w.overdue} overdue · {w.open_count} open
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              {laggards.map((w) => (
+                <div
+                  key={w.ward}
+                  className="rounded-xl border border-rose-400/30 bg-rose-500/[0.06] p-3"
+                >
+                  <p className="text-sm font-semibold text-white">{w.ward}</p>
+                  <p className="mt-1 text-[10px] uppercase tracking-widest text-rose-300/80">
+                    {w.overdue} overdue · {w.open_count} open
+                  </p>
+                </div>
+              ))}
+            </div>
+          </GlassCard>
         )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Trophy className="h-4 w-4 text-primary" />
-              Ward scorecards
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {sortedWards.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No reports yet.</p>
+        <div className="grid gap-6 lg:grid-cols-3">
+          <GlassCard className="p-5 lg:col-span-2">
+            <div className="mb-4 flex items-center gap-2">
+              <Trophy className="h-4 w-4 text-cyan-300" />
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-300">
+                Ward scorecards
+              </p>
+            </div>
+            {wardsLoading ? (
+              <p className="text-sm text-slate-500">Loading grid…</p>
+            ) : sortedWards.length === 0 ? (
+              <p className="text-sm text-slate-500">No reports yet.</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b text-left text-xs uppercase text-muted-foreground">
+                    <tr className="border-b border-white/10 text-left text-[10px] uppercase tracking-widest text-slate-500">
                       <th className="py-2 pr-4">Ward</th>
                       <th className="py-2 pr-4">Total</th>
                       <th className="py-2 pr-4">Resolved</th>
                       <th className="py-2 pr-4">Open</th>
                       <th className="py-2 pr-4">Overdue</th>
-                      <th className="py-2 pr-4">On-time %</th>
-                      <th className="py-2 pr-4">Avg time</th>
+                      <th className="py-2 pr-4">On-time</th>
+                      <th className="py-2 pr-4">Avg</th>
                     </tr>
                   </thead>
                   <tbody>
                     {sortedWards.map((w) => (
-                      <tr key={w.ward} className="border-b last:border-0">
-                        <td className="py-3 pr-4 font-medium">{w.ward}</td>
+                      <tr key={w.ward} className="border-b border-white/5 last:border-0 text-slate-200">
+                        <td className="py-3 pr-4 font-medium text-white">{w.ward}</td>
                         <td className="py-3 pr-4">{w.total}</td>
-                        <td className="py-3 pr-4">{w.resolved}</td>
-                        <td className="py-3 pr-4">{w.open_count}</td>
+                        <td className="py-3 pr-4 text-emerald-300">{w.resolved}</td>
+                        <td className="py-3 pr-4 text-rose-300">{w.open_count}</td>
                         <td className="py-3 pr-4">
                           {w.overdue > 0 ? (
-                            <Badge variant="destructive">{w.overdue}</Badge>
+                            <span className="inline-flex rounded-full border border-amber-400/40 bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-200">
+                              {w.overdue}
+                            </span>
                           ) : (
-                            <span className="text-muted-foreground">0</span>
+                            <span className="text-slate-600">0</span>
                           )}
                         </td>
                         <td className="py-3 pr-4">
                           {w.on_time_rate !== null ? (
-                            <Badge
-                              variant={
-                                (w.on_time_rate ?? 0) >= 80
-                                  ? "default"
-                                  : (w.on_time_rate ?? 0) >= 50
-                                    ? "secondary"
-                                    : "destructive"
-                              }
-                            >
-                              {w.on_time_rate}%
-                            </Badge>
+                            <OnTimePill rate={w.on_time_rate ?? 0} />
                           ) : (
-                            <span className="text-muted-foreground">—</span>
+                            <span className="text-slate-600">—</span>
                           )}
                         </td>
-                        <td className="py-3 pr-4 text-muted-foreground">
+                        <td className="py-3 pr-4 text-slate-400">
                           {w.avg_resolution_hours !== null ? (
-                            <span className="flex items-center gap-1">
+                            <span className="inline-flex items-center gap-1">
                               <Clock className="h-3 w-3" />
                               {w.avg_resolution_hours}h
                             </span>
@@ -167,45 +191,93 @@ function LeaderboardPage() {
                 </table>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </GlassCard>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Users className="h-4 w-4 text-primary" />
-              Top contributing citizens
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {citizens.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No contributors yet.</p>
+          <GlassCard className="p-5">
+            <div className="mb-4 flex items-center gap-2">
+              <Users className="h-4 w-4 text-cyan-300" />
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-300">
+                Top citizens
+              </p>
+            </div>
+            {citizensLoading ? (
+              <p className="text-sm text-slate-500">Loading…</p>
+            ) : citizens.length === 0 ? (
+              <p className="text-sm text-slate-500">No contributors yet.</p>
             ) : (
               <ol className="space-y-2">
                 {citizens.map((c, i) => (
                   <li
                     key={c.user_id}
-                    className="flex items-center gap-3 rounded-md border border-border/60 p-3"
+                    className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.02] p-3"
                   >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
+                    <div
+                      className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold ${
+                        i === 0
+                          ? "bg-amber-400/20 text-amber-200 ring-1 ring-amber-400/40"
+                          : i === 1
+                            ? "bg-slate-300/15 text-slate-100 ring-1 ring-slate-300/30"
+                            : i === 2
+                              ? "bg-orange-500/15 text-orange-200 ring-1 ring-orange-500/30"
+                              : "bg-white/5 text-slate-300"
+                      }`}
+                    >
                       {i + 1}
                     </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-white">
                         Citizen · {c.user_id.slice(0, 8)}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-[10px] uppercase tracking-widest text-slate-500">
                         {c.reports_count} reports · {c.upvotes_received} upvotes
                       </p>
                     </div>
-                    <Badge>{c.reputation} rep</Badge>
+                    <span className="shrink-0 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-semibold text-cyan-200">
+                      {c.reputation} rep
+                    </span>
                   </li>
                 ))}
               </ol>
             )}
-          </CardContent>
-        </Card>
+          </GlassCard>
+        </div>
       </main>
+    </PageShell>
+  );
+}
+
+function StatPod({
+  icon,
+  label,
+  value,
+  hue,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: number;
+  hue: string;
+}) {
+  return (
+    <div
+      className={`inline-flex items-center gap-1.5 rounded-full border bg-slate-950/70 px-2.5 py-1 backdrop-blur ${hue}`}
+    >
+      {icon}
+      <span className="text-[10px] font-bold uppercase tracking-widest">{label}</span>
+      <span className="text-xs font-semibold text-white">{value}</span>
     </div>
+  );
+}
+
+function OnTimePill({ rate }: { rate: number }) {
+  const tone =
+    rate >= 80
+      ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-200"
+      : rate >= 50
+        ? "border-amber-400/40 bg-amber-500/10 text-amber-200"
+        : "border-rose-400/40 bg-rose-500/10 text-rose-200";
+  return (
+    <span className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold ${tone}`}>
+      {rate}%
+    </span>
   );
 }
