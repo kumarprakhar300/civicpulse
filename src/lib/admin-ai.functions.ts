@@ -122,3 +122,39 @@ export const sendReportUpdate = createServerFn({ method: "POST" })
     if (insErr) throw new Error(insErr.message);
     return { ok: true };
   });
+
+// Resolve a report with a "before/after" proof photo (base64 data URL).
+export const adminResolveWithProof = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { reportId: string; photoDataUrl: string }) =>
+    z
+      .object({
+        reportId: z.string().uuid(),
+        photoDataUrl: z
+          .string()
+          .startsWith("data:image/", { message: "photoDataUrl must be a data URL" })
+          .max(8 * 1024 * 1024),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    // Decode data URL -> bytes
+    const match = data.photoDataUrl.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+    if (!match) throw new Error("Invalid image data URL");
+    const mime = match[1];
+    const ext = mime.split("/")[1].replace("jpeg", "jpg");
+    const bytes = Buffer.from(match[2], "base64");
+    const path = `resolutions/${data.reportId}-${Date.now()}.${ext}`;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error: upErr } = await supabaseAdmin.storage
+      .from("report-photos")
+      .upload(path, bytes, { contentType: mime, upsert: true });
+    if (upErr) throw new Error(upErr.message);
+    const { error: updErr } = await context.supabase
+      .from("reports")
+      .update({ status: "resolved", resolution_photo_url: path } as never)
+      .eq("id", data.reportId);
+    if (updErr) throw new Error(updErr.message);
+    return { ok: true };
+  });
