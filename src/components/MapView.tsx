@@ -233,7 +233,6 @@ export default function MapView({
       }).addTo(layer);
     }
   }, [userLocation, clickedPoint]);
-  }, [userLocation, clickedPoint]);
 
 
 
