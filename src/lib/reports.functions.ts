@@ -38,12 +38,20 @@ export const getPublicReports = createServerFn({ method: "GET" }).handler(async 
   const { data, error } = await pub()
     .from("reports")
     .select(
-      "id, title, issue_type, latitude, longitude, photo_url, status, created_at, description, resolved_at, ward, department, upvote_count",
+      "id, title, issue_type, latitude, longitude, photo_url, status, created_at, description, resolved_at, ward, department, upvote_count, sla_due_at, sla_hours, severity, priority_score",
     )
     .order("created_at", { ascending: false });
   if (error) throw error;
   return await signPhotoUrls(data ?? []);
 });
+
+// Sign a bucket path (returns null if not a bucket path).
+async function signPath(path: string | null | undefined): Promise<string | null> {
+  if (!path || /^https?:\/\//i.test(path)) return path ?? null;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await supabaseAdmin.storage.from("report-photos").createSignedUrl(path, 3600);
+  return data?.signedUrl ?? null;
+}
 
 export const getPublicReport = createServerFn({ method: "GET" })
   .inputValidator((d: { id: string }) => d)
@@ -53,7 +61,7 @@ export const getPublicReport = createServerFn({ method: "GET" })
       supabase
         .from("reports")
         .select(
-          "id, title, description, issue_type, latitude, longitude, photo_url, status, ward, department, upvote_count, created_at, resolved_at",
+          "id, title, description, issue_type, latitude, longitude, photo_url, status, ward, department, upvote_count, created_at, resolved_at, sla_due_at, sla_hours, severity, resolution_photo_url",
         )
         .eq("id", data.id)
         .maybeSingle(),
@@ -70,8 +78,13 @@ export const getPublicReport = createServerFn({ method: "GET" })
     ]);
     if (report.error) throw report.error;
     const [signed] = report.data ? await signPhotoUrls([report.data]) : [null];
+    const resolutionSigned = report.data
+      ? await signPath((report.data as any).resolution_photo_url)
+      : null;
     return {
-      report: signed,
+      report: signed
+        ? { ...(signed as any), resolution_photo_url: resolutionSigned }
+        : null,
       comments: comments.data ?? [],
       history: history.data ?? [],
     };
