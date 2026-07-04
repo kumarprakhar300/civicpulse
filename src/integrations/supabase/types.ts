@@ -180,16 +180,21 @@ export type Database = {
       }
       reports: {
         Row: {
+          ai_categorized: boolean
+          ai_summary: string | null
           created_at: string
           department: string | null
           description: string | null
+          embedding: string | null
           id: string
           internal_notes: string | null
           issue_type: string
           latitude: number
           longitude: number
           photo_url: string | null
+          priority_score: number
           resolved_at: string | null
+          severity: number | null
           status: string
           title: string
           updated_at: string
@@ -198,16 +203,21 @@ export type Database = {
           ward: string | null
         }
         Insert: {
+          ai_categorized?: boolean
+          ai_summary?: string | null
           created_at?: string
           department?: string | null
           description?: string | null
+          embedding?: string | null
           id?: string
           internal_notes?: string | null
           issue_type: string
           latitude: number
           longitude: number
           photo_url?: string | null
+          priority_score?: number
           resolved_at?: string | null
+          severity?: number | null
           status?: string
           title: string
           updated_at?: string
@@ -216,16 +226,21 @@ export type Database = {
           ward?: string | null
         }
         Update: {
+          ai_categorized?: boolean
+          ai_summary?: string | null
           created_at?: string
           department?: string | null
           description?: string | null
+          embedding?: string | null
           id?: string
           internal_notes?: string | null
           issue_type?: string
           latitude?: number
           longitude?: number
           photo_url?: string | null
+          priority_score?: number
           resolved_at?: string | null
+          severity?: number | null
           status?: string
           title?: string
           updated_at?: string
@@ -316,6 +331,26 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      match_nearby_reports: {
+        Args: {
+          match_count?: number
+          max_days?: number
+          query_embedding: string
+          query_lat: number
+          query_lng: number
+          radius_meters?: number
+        }
+        Returns: {
+          created_at: string
+          distance_meters: number
+          id: string
+          issue_type: string
+          similarity: number
+          status: string
+          title: string
+          upvote_count: number
+        }[]
       }
     }
     Enums: {
