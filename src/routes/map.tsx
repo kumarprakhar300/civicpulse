@@ -52,11 +52,18 @@ function MapPage() {
   const [status, setStatus] = useState("all");
   const [q, setQ] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [clickedPoint, setClickedPoint] = useState<{ lat: number; lng: number } | null>(null);
+  const [geoError, setGeoError] = useState<string | null>(null);
   const [MapView, setMapView] = useState<React.ComponentType<{
     reports: any[];
     filter: string;
     selectedId?: string | null;
+    userLocation?: { lat: number; lng: number } | null;
+    clickedPoint?: { lat: number; lng: number } | null;
+    onMapClick?: (lat: number, lng: number) => void;
   }> | null>(null);
+
 
   const { data: reports = [], isLoading } = useQuery({
     queryKey: ["public-reports"],
