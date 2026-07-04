@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -12,9 +12,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { MapPin, Camera, Loader2, Check, Upload } from "lucide-react";
+import { Camera, Loader2, Check, Upload } from "lucide-react";
+import { PageShell, GlassCard } from "@/components/PageShell";
+
 
 export const Route = createFileRoute("/_authenticated/report")({
   head: () => ({
@@ -147,143 +148,147 @@ function ReportPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border/60">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <Link to="/" className="flex items-center gap-2 font-bold text-lg">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <MapPin className="h-4 w-4" />
+    <PageShell>
+      <main className="relative z-10 mx-auto max-w-2xl px-6 py-10">
+        <div className="mb-6">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 backdrop-blur-md">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-cyan-400" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">
+              New report
             </span>
-            CivicPulse
-          </Link>
+          </div>
+          <h1 className="mt-4 text-3xl font-extrabold tracking-tight">
+            <span className="bg-gradient-to-b from-white to-white/50 bg-clip-text text-transparent">
+              Report an issue
+            </span>
+          </h1>
+          <p className="mt-1 text-sm text-slate-400">
+            Snap a photo. We tag the location automatically.
+          </p>
         </div>
-      </header>
 
-      <main className="mx-auto max-w-2xl px-6 py-10">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">Report an issue</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <Label>Issue type</Label>
-                <Select value={issueType} onValueChange={setIssueType}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select an issue type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {issueTypes.map((t) => (
-                      <SelectItem key={t.value} value={t.value}>
-                        {t.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+        <GlassCard className="p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label className="text-slate-300">Issue type</Label>
+              <Select value={issueType} onValueChange={setIssueType}>
+                <SelectTrigger className="border-white/10 bg-white/5 text-white">
+                  <SelectValue placeholder="Select an issue type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {issueTypes.map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Large pothole near school"
-                  required
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="title" className="text-slate-300">Title</Label>
+              <Input
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Large pothole near school"
+                required
+                className="border-white/10 bg-white/5 text-white placeholder:text-slate-500"
+              />
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="description">Description (optional)</Label>
-                <Textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Describe the issue in detail..."
-                  rows={4}
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-slate-300">Description (optional)</Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Describe the issue in detail..."
+                rows={4}
+                className="border-white/10 bg-white/5 text-white placeholder:text-slate-500"
+              />
+            </div>
 
-              <div className="space-y-2">
-                <Label>Photo (optional)</Label>
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/30 px-6 py-10 hover:bg-muted/50 transition-colors"
-                >
-                  {photoPreview ? (
-                    <img
-                      src={photoPreview}
-                      alt="Preview"
-                      className="max-h-48 rounded-md object-cover"
-                    />
-                  ) : (
-                    <>
-                      <Camera className="mb-2 h-8 w-8 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">Click to upload a photo</p>
-                    </>
-                  )}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handlePhotoChange}
-                  />
-                </div>
-                {photo && (
-                  <p className="text-xs text-muted-foreground">
-                    {photo.name} ({(photo.size / 1024 / 1024).toFixed(2)} MB)
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label>Location</Label>
-                <div className="rounded-lg border border-border bg-muted/30 p-4">
-                  {locStatus === "loading" && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Getting your location...
-                    </div>
-                  )}
-                  {locStatus === "success" && location && (
-                    <div className="flex items-center gap-2 text-sm text-emerald-600">
-                      <Check className="h-4 w-4" />
-                      Location captured: {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
-                    </div>
-                  )}
-                  {locStatus === "error" && (
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-sm text-destructive">Could not get location</span>
-                      <Button type="button" variant="outline" size="sm" onClick={getLocation}>
-                        Retry
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={submitting || locStatus === "loading"}
+            <div className="space-y-2">
+              <Label className="text-slate-300">Photo (optional)</Label>
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-white/15 bg-white/[0.02] px-6 py-10 transition hover:bg-white/[0.05]"
               >
-                {submitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Submitting...
-                  </>
+                {photoPreview ? (
+                  <img
+                    src={photoPreview}
+                    alt="Preview"
+                    className="max-h-48 rounded-md object-cover"
+                  />
                 ) : (
                   <>
-                    <Upload className="mr-2 h-4 w-4" />
-                    Submit report
+                    <Camera className="mb-2 h-8 w-8 text-cyan-300/80" />
+                    <p className="text-sm text-slate-400">Click to upload a photo</p>
                   </>
                 )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handlePhotoChange}
+                />
+              </div>
+              {photo && (
+                <p className="text-xs text-slate-500">
+                  {photo.name} ({(photo.size / 1024 / 1024).toFixed(2)} MB)
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-slate-300">Location</Label>
+              <div className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+                {locStatus === "loading" && (
+                  <div className="flex items-center gap-2 text-sm text-slate-400">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Getting your location...
+                  </div>
+                )}
+                {locStatus === "success" && location && (
+                  <div className="flex items-center gap-2 text-sm text-emerald-400">
+                    <Check className="h-4 w-4" />
+                    Captured: {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
+                  </div>
+                )}
+                {locStatus === "error" && (
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm text-rose-400">Could not get location</span>
+                    <Button type="button" variant="outline" size="sm" onClick={getLocation} className="border-white/15 bg-white/5 text-white hover:bg-white/10">
+                      Retry
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full bg-white text-slate-950 hover:bg-white/90"
+              disabled={submitting || locStatus === "loading"}
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Submit report
+                </>
+              )}
+            </Button>
+          </form>
+        </GlassCard>
       </main>
-    </div>
+    </PageShell>
   );
 }
+

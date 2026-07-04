@@ -1,10 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getPublicReports } from "@/lib/reports.functions";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { MapPin, Loader2, TrendingUp, Clock, Activity, CheckCircle2 } from "lucide-react";
+import { Loader2, TrendingUp, Clock, Activity, CheckCircle2 } from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -20,22 +18,23 @@ import {
   CartesianGrid,
   Legend,
 } from "recharts";
+import { PageShell, GlassCard } from "@/components/PageShell";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
-      { title: "Analytics Dashboard — CivicPulse" },
+      { title: "Analytics Dashboard — CivicPulse India" },
       {
         name: "description",
         content:
-          "Public accountability dashboard: resolution times, hotspot heatmap, and issue trends across wards.",
+          "Public accountability dashboard for India: resolution times, hotspot heatmap, and issue trends.",
       },
     ],
   }),
   component: DashboardPage,
 });
 
-const COLORS = ["#ef4444", "#22c55e", "#eab308", "#6b7280", "#3b82f6"];
+const COLORS = ["#22d3ee", "#34d399", "#fbbf24", "#a78bfa", "#f472b6"];
 
 function DashboardPage() {
   const { data: reports = [], isLoading } = useQuery({
@@ -54,9 +53,8 @@ function DashboardPage() {
     const resolved = reports.filter((r: any) => r.status === "resolved").length;
     const open = reports.filter((r: any) => r.status === "open").length;
     const inProgress = reports.filter((r: any) => r.status === "in_progress").length;
-
     const resolvedWithTimes = reports.filter(
-      (r: any) => r.status === "resolved" && r.resolved_at
+      (r: any) => r.status === "resolved" && r.resolved_at,
     );
     const avgHours =
       resolvedWithTimes.length > 0
@@ -66,7 +64,6 @@ function DashboardPage() {
             return sum + diff / (1000 * 60 * 60);
           }, 0) / resolvedWithTimes.length
         : 0;
-
     return { total, resolved, open, inProgress, avgHours };
   }, [reports]);
 
@@ -89,108 +86,102 @@ function DashboardPage() {
       map.set(day, (map.get(day) || 0) + 1);
     });
     return Array.from(map, ([date, count]) => ({ date, count })).sort((a, b) =>
-      a.date.localeCompare(b.date)
+      a.date.localeCompare(b.date),
     );
   }, [reports]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border/60 bg-background/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-          <Link to="/" className="flex items-center gap-2 font-bold text-lg">
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <MapPin className="h-4 w-4" />
-            </span>
-            CivicPulse
-          </Link>
-          <div className="flex items-center gap-2">
-            <Link to="/map">
-              <Button variant="ghost" size="sm">Map</Button>
-            </Link>
-            <Link to="/report">
-              <Button size="sm">Report an issue</Button>
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-7xl px-6 py-10 space-y-8">
+    <PageShell contained={false}>
+      <main className="relative z-10 mx-auto max-w-7xl space-y-8 px-6 py-10">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Accountability Dashboard</h1>
-          <p className="mt-1 text-muted-foreground">
-            Public analytics — how fast issues get resolved, where the hotspots are, and what breaks
-            most.
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 backdrop-blur-md">
+            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">
+              Live analytics · India
+            </span>
+          </div>
+          <h1 className="mt-4 text-4xl font-extrabold tracking-tight">
+            <span className="bg-gradient-to-b from-white to-white/50 bg-clip-text text-transparent">
+              Accountability Dashboard
+            </span>
+          </h1>
+          <p className="mt-2 text-slate-400">
+            How fast issues get resolved, where the hotspots are, and what breaks most.
           </p>
         </div>
 
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <Loader2 className="h-8 w-8 animate-spin text-cyan-300" />
           </div>
         ) : (
           <>
-            {/* KPI cards */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <KpiCard icon={<Activity />} label="Total reports" value={stats.total.toString()} />
+              <KpiCard icon={<Activity />} label="Total reports" value={stats.total.toString()} hue="from-cyan-500/30 to-blue-600/10" />
               <KpiCard
                 icon={<CheckCircle2 />}
                 label="Resolved"
                 value={`${stats.resolved} (${
                   stats.total ? Math.round((stats.resolved / stats.total) * 100) : 0
                 }%)`}
+                hue="from-emerald-500/30 to-teal-600/10"
               />
-              <KpiCard icon={<TrendingUp />} label="Open" value={stats.open.toString()} />
+              <KpiCard icon={<TrendingUp />} label="Open" value={stats.open.toString()} hue="from-amber-500/30 to-rose-600/10" />
               <KpiCard
                 icon={<Clock />}
                 label="Avg resolution"
                 value={stats.avgHours ? `${stats.avgHours.toFixed(1)}h` : "—"}
+                hue="from-indigo-500/30 to-purple-600/10"
               />
             </div>
 
-            {/* Heatmap */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Hotspot heatmap</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[420px] overflow-hidden rounded-md border border-border/60">
-                  {HeatmapView ? (
-                    <Suspense fallback={<div className="p-6">Loading…</div>}>
-                      <HeatmapView points={reports} />
-                    </Suspense>
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-muted-foreground">
-                      Loading heatmap…
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            <GlassCard className="p-6">
+              <h2 className="mb-4 text-lg font-semibold text-white">Hotspot heatmap · India</h2>
+              <div className="h-[420px] overflow-hidden rounded-xl border border-white/10">
+                {HeatmapView ? (
+                  <Suspense fallback={<div className="p-6 text-slate-400">Loading…</div>}>
+                    <HeatmapView points={reports} />
+                  </Suspense>
+                ) : (
+                  <div className="flex h-full items-center justify-center text-slate-400">
+                    Loading heatmap…
+                  </div>
+                )}
+              </div>
+            </GlassCard>
 
-            {/* Charts */}
             <div className="grid gap-6 lg:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Issues by type</CardTitle>
-                </CardHeader>
-                <CardContent className="h-[280px]">
+              <GlassCard className="p-6">
+                <h2 className="mb-4 text-lg font-semibold text-white">Issues by type</h2>
+                <div className="h-[280px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={byType}>
-                      <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                      <XAxis dataKey="type" />
-                      <YAxis allowDecimals={false} />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+                      <XAxis dataKey="type" stroke="rgba(255,255,255,0.5)" fontSize={12} />
+                      <YAxis allowDecimals={false} stroke="rgba(255,255,255,0.5)" fontSize={12} />
+                      <Tooltip
+                        contentStyle={{
+                          background: "rgba(15,23,42,0.95)",
+                          border: "1px solid rgba(255,255,255,0.1)",
+                          borderRadius: 8,
+                          color: "#fff",
+                        }}
+                      />
+                      <Bar dataKey="count" fill="url(#barGrad)" radius={[6, 6, 0, 0]} />
+                      <defs>
+                        <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#22d3ee" />
+                          <stop offset="100%" stopColor="#3b82f6" />
+                        </linearGradient>
+                      </defs>
                     </BarChart>
                   </ResponsiveContainer>
-                </CardContent>
-              </Card>
+                </div>
+              </GlassCard>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>Status breakdown</CardTitle>
-                </CardHeader>
-                <CardContent className="h-[280px]">
+              <GlassCard className="p-6">
+                <h2 className="mb-4 text-lg font-semibold text-white">Status breakdown</h2>
+                <div className="h-[280px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -199,45 +190,58 @@ function DashboardPage() {
                         nameKey="name"
                         outerRadius={90}
                         label
+                        stroke="rgba(15,23,42,0.9)"
                       >
                         {byStatus.map((_, i) => (
                           <Cell key={i} fill={COLORS[i % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip />
-                      <Legend />
+                      <Tooltip
+                        contentStyle={{
+                          background: "rgba(15,23,42,0.95)",
+                          border: "1px solid rgba(255,255,255,0.1)",
+                          borderRadius: 8,
+                          color: "#fff",
+                        }}
+                      />
+                      <Legend wrapperStyle={{ color: "rgba(255,255,255,0.7)" }} />
                     </PieChart>
                   </ResponsiveContainer>
-                </CardContent>
-              </Card>
+                </div>
+              </GlassCard>
 
-              <Card className="lg:col-span-2">
-                <CardHeader>
-                  <CardTitle>Reports over time</CardTitle>
-                </CardHeader>
-                <CardContent className="h-[280px]">
+              <GlassCard className="p-6 lg:col-span-2">
+                <h2 className="mb-4 text-lg font-semibold text-white">Reports over time</h2>
+                <div className="h-[280px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={trend}>
-                      <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                      <XAxis dataKey="date" />
-                      <YAxis allowDecimals={false} />
-                      <Tooltip />
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
+                      <XAxis dataKey="date" stroke="rgba(255,255,255,0.5)" fontSize={12} />
+                      <YAxis allowDecimals={false} stroke="rgba(255,255,255,0.5)" fontSize={12} />
+                      <Tooltip
+                        contentStyle={{
+                          background: "rgba(15,23,42,0.95)",
+                          border: "1px solid rgba(255,255,255,0.1)",
+                          borderRadius: 8,
+                          color: "#fff",
+                        }}
+                      />
                       <Line
                         type="monotone"
                         dataKey="count"
-                        stroke="hsl(var(--primary))"
-                        strokeWidth={2}
+                        stroke="#22d3ee"
+                        strokeWidth={2.5}
                         dot={false}
                       />
                     </LineChart>
                   </ResponsiveContainer>
-                </CardContent>
-              </Card>
+                </div>
+              </GlassCard>
             </div>
           </>
         )}
       </main>
-    </div>
+    </PageShell>
   );
 }
 
@@ -245,24 +249,25 @@ function KpiCard({
   icon,
   label,
   value,
+  hue,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
+  hue: string;
 }) {
   return (
-    <Card>
-      <CardContent className="p-6">
-        <div className="flex items-center gap-3">
-          <div className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 text-primary">
-            {icon}
-          </div>
-          <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
-            <p className="text-2xl font-bold">{value}</p>
-          </div>
+    <div className="group relative">
+      <div className={`absolute -inset-0.5 rounded-2xl bg-gradient-to-br ${hue} opacity-40 blur-xl transition group-hover:opacity-70`} />
+      <div className="relative flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl">
+        <div className={`inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-gradient-to-br ${hue} text-cyan-200`}>
+          {icon}
         </div>
-      </CardContent>
-    </Card>
+        <div>
+          <p className="text-[10px] uppercase tracking-widest text-slate-400">{label}</p>
+          <p className="mt-0.5 text-2xl font-extrabold text-white">{value}</p>
+        </div>
+      </div>
+    </div>
   );
 }
