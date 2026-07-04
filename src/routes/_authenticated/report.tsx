@@ -45,6 +45,7 @@ function ReportPage() {
   const [locStatus, setLocStatus] = useState<"loading" | "success" | "error">("loading");
   const [submitting, setSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     getLocation();
@@ -211,30 +212,55 @@ function ReportPage() {
 
             <div className="space-y-2">
               <Label className="text-slate-300">Photo (optional)</Label>
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-white/15 bg-white/[0.02] px-6 py-10 transition hover:bg-white/[0.05]"
-              >
-                {photoPreview ? (
-                  <img
-                    src={photoPreview}
-                    alt="Preview"
-                    className="max-h-48 rounded-md object-cover"
-                  />
-                ) : (
-                  <>
-                    <Camera className="mb-2 h-8 w-8 text-cyan-300/80" />
-                    <p className="text-sm text-slate-400">Click to upload a photo</p>
-                  </>
-                )}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handlePhotoChange}
-                />
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => cameraInputRef.current?.click()}
+                  className="flex flex-col items-center justify-center rounded-xl border border-cyan-400/30 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 px-4 py-5 transition hover:from-cyan-500/20 hover:to-blue-500/20"
+                >
+                  <Camera className="mb-1.5 h-6 w-6 text-cyan-300" />
+                  <span className="text-xs font-semibold text-white">Take photo</span>
+                  <span className="text-[10px] text-slate-400">Live camera</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex flex-col items-center justify-center rounded-xl border border-white/15 bg-white/[0.03] px-4 py-5 transition hover:bg-white/[0.06]"
+                >
+                  <Upload className="mb-1.5 h-6 w-6 text-slate-300" />
+                  <span className="text-xs font-semibold text-white">Upload</span>
+                  <span className="text-[10px] text-slate-400">From gallery</span>
+                </button>
               </div>
+
+              {photoPreview && (
+                <div className="relative mt-2 overflow-hidden rounded-xl border border-white/10">
+                  <img src={photoPreview} alt="Preview" className="max-h-64 w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => { setPhoto(null); setPhotoPreview(null); }}
+                    className="absolute right-2 top-2 rounded-full bg-slate-950/80 px-3 py-1 text-xs text-white backdrop-blur hover:bg-slate-950"
+                  >
+                    Remove
+                  </button>
+                </div>
+              )}
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handlePhotoChange}
+              />
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={handlePhotoChange}
+              />
               {photo && (
                 <p className="text-xs text-slate-500">
                   {photo.name} ({(photo.size / 1024 / 1024).toFixed(2)} MB)
