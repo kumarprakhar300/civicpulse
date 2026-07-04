@@ -54,6 +54,8 @@ function MyReportsPage() {
           </Link>
         </div>
 
+        <ReputationCard />
+
         <GlassCard className="p-6">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-base font-semibold text-white">
