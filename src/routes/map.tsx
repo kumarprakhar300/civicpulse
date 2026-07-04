@@ -13,6 +13,9 @@ import {
   Clock,
   Radio,
   Crosshair,
+  Navigation,
+  LocateFixed,
+
 } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
 
@@ -49,11 +52,18 @@ function MapPage() {
   const [status, setStatus] = useState("all");
   const [q, setQ] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [clickedPoint, setClickedPoint] = useState<{ lat: number; lng: number } | null>(null);
+  const [geoError, setGeoError] = useState<string | null>(null);
   const [MapView, setMapView] = useState<React.ComponentType<{
     reports: any[];
     filter: string;
     selectedId?: string | null;
+    userLocation?: { lat: number; lng: number } | null;
+    clickedPoint?: { lat: number; lng: number } | null;
+    onMapClick?: (lat: number, lng: number) => void;
   }> | null>(null);
+
 
   const { data: reports = [], isLoading } = useQuery({
     queryKey: ["public-reports"],
@@ -64,6 +74,39 @@ function MapPage() {
     import("@/components/MapView").then((mod) => setMapView(() => mod.default));
   }, []);
 
+  const locateMe = () => {
+    if (!("geolocation" in navigator)) {
+      setGeoError("Geolocation not supported by this browser.");
+      return;
+    }
+    setGeoError(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setClickedPoint({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      },
+      (err) => setGeoError(err.message || "Unable to fetch location"),
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  };
+
+  useEffect(() => {
+    locateMe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // haversine distance in km
+  const distanceKm = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) => {
+    const R = 6371;
+    const toRad = (d: number) => (d * Math.PI) / 180;
+    const dLat = toRad(b.lat - a.lat);
+    const dLng = toRad(b.lng - a.lng);
+    const s =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(s));
+  };
+
   const filtered = useMemo(() => {
     return (reports as any[]).filter((r) => {
       if (filter !== "all" && r.issue_type !== filter) return false;
@@ -73,6 +116,15 @@ function MapPage() {
     });
   }, [reports, filter, status, q]);
 
+  const anchor = clickedPoint ?? userLocation;
+  const nearby = useMemo(() => {
+    if (!anchor) return [];
+    return (filtered as any[])
+      .map((r) => ({ ...r, _dist: distanceKm(anchor, { lat: r.latitude, lng: r.longitude }) }))
+      .sort((a, b) => a._dist - b._dist)
+      .slice(0, 20);
+  }, [filtered, anchor]);
+
   const stats = useMemo(() => {
     const total = filtered.length;
     const resolved = filtered.filter((r: any) => r.status === "resolved").length;
@@ -80,6 +132,7 @@ function MapPage() {
     const inProgress = filtered.filter((r: any) => r.status === "in_progress").length;
     return { total, resolved, open, inProgress };
   }, [filtered]);
+
 
   return (
     <PageShell fullHeight contained={false}>
@@ -138,8 +191,18 @@ function MapPage() {
               </button>
             ))}
           </div>
+
+          <button
+            onClick={locateMe}
+            title="Use my live location"
+            className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/40 bg-cyan-500/10 px-3 py-1.5 text-xs font-medium text-cyan-200 transition hover:bg-cyan-500/20"
+          >
+            <LocateFixed className="h-3.5 w-3.5" />
+            My location
+          </button>
         </div>
       </div>
+
 
       {/* Command center layout */}
       <div className="relative z-10 flex flex-1 gap-3 overflow-hidden p-3">
@@ -188,7 +251,15 @@ function MapPage() {
                 </div>
               }
             >
-              <MapView reports={filtered} filter={filter} selectedId={selectedId} />
+              <MapView
+                reports={filtered}
+                filter={filter}
+                selectedId={selectedId}
+                userLocation={userLocation}
+                clickedPoint={clickedPoint}
+                onMapClick={(lat, lng) => setClickedPoint({ lat, lng })}
+              />
+
             </Suspense>
           ) : (
             <div className="flex h-full items-center justify-center text-slate-400">
@@ -197,8 +268,82 @@ function MapPage() {
           )}
         </div>
 
-        {/* Sidebar: live reports feed */}
-        <aside className="hidden w-[340px] flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-950/60 backdrop-blur-xl lg:flex">
+        {/* Sidebar: nearby + live feed */}
+        <aside className="hidden w-[360px] flex-shrink-0 flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-950/60 backdrop-blur-xl lg:flex">
+          {/* Nearby / Live location panel */}
+          <div className="border-b border-white/5 bg-gradient-to-br from-cyan-500/10 to-transparent px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-cyan-300">
+                  {clickedPoint && userLocation && (clickedPoint.lat !== userLocation.lat || clickedPoint.lng !== userLocation.lng)
+                    ? "Nearby · Selected point"
+                    : userLocation
+                      ? "Nearby · Your live location"
+                      : "Nearby"}
+                </p>
+                <p className="text-sm font-semibold text-white">
+                  {anchor
+                    ? `${anchor.lat.toFixed(4)}°, ${anchor.lng.toFixed(4)}°`
+                    : "Enable location or click the map"}
+                </p>
+              </div>
+              <button
+                onClick={locateMe}
+                title="Refresh live location"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-cyan-400/40 bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20"
+              >
+                <Navigation className="h-4 w-4" />
+              </button>
+            </div>
+            {geoError && (
+              <p className="mt-2 text-[10px] text-rose-300">{geoError}</p>
+            )}
+            {!anchor && !geoError && (
+              <p className="mt-2 text-[10px] text-slate-400">
+                Allow location access, or tap anywhere on the map to see nearby issues.
+              </p>
+            )}
+          </div>
+
+          {anchor && (
+            <div className="max-h-[45%] overflow-y-auto border-b border-white/5 p-2">
+              {nearby.length === 0 ? (
+                <div className="p-4 text-center text-xs text-slate-500">
+                  No matching reports nearby.
+                </div>
+              ) : (
+                nearby.map((r: any) => (
+                  <button
+                    key={`near-${r.id}`}
+                    onClick={() => setSelectedId(r.id)}
+                    className="mb-2 flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/[0.02] p-2.5 text-left transition hover:border-cyan-400/40 hover:bg-cyan-500/5"
+                  >
+                    <span
+                      className={`h-2 w-2 shrink-0 rounded-full ${
+                        r.issue_type === "pothole"
+                          ? "bg-rose-400"
+                          : r.issue_type === "garbage"
+                            ? "bg-emerald-400"
+                            : r.issue_type === "streetlight"
+                              ? "bg-amber-400"
+                              : "bg-slate-400"
+                      }`}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-medium text-white">{r.title}</p>
+                      <p className="text-[10px] text-slate-500 capitalize">
+                        {r.issue_type} · {r.status.replace("_", " ")}
+                      </p>
+                    </div>
+                    <span className="shrink-0 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-semibold text-cyan-200">
+                      {r._dist < 1 ? `${Math.round(r._dist * 1000)} m` : `${r._dist.toFixed(1)} km`}
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+
           <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
@@ -218,6 +363,7 @@ function MapPage() {
               <div className="p-6 text-center text-xs text-slate-500">
                 No reports match these filters.
               </div>
+
             )}
             {filtered.map((r: any) => (
               <button

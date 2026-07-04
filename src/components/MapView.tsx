@@ -42,14 +42,27 @@ interface Report {
 export default function MapView({
   reports,
   selectedId,
+  userLocation,
+  clickedPoint,
+  onMapClick,
 }: {
   reports: Report[];
   filter: string;
   selectedId?: string | null;
+  userLocation?: { lat: number; lng: number } | null;
+  clickedPoint?: { lat: number; lng: number } | null;
+  onMapClick?: (lat: number, lng: number) => void;
 }) {
+
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<L.Map | null>(null);
   const markersLayer = useRef<L.LayerGroup | null>(null);
+  const overlayLayer = useRef<L.LayerGroup | null>(null);
+  const onMapClickRef = useRef(onMapClick);
+  useEffect(() => {
+    onMapClickRef.current = onMapClick;
+  }, [onMapClick]);
+
 
   useEffect(() => {
     if (!mapRef.current || leafletMap.current) return;
@@ -87,12 +100,19 @@ export default function MapView({
 
     leafletMap.current = map;
     markersLayer.current = L.layerGroup().addTo(map);
+    overlayLayer.current = L.layerGroup().addTo(map);
+
+    map.on("click", (e: L.LeafletMouseEvent) => {
+      onMapClickRef.current?.(e.latlng.lat, e.latlng.lng);
+    });
 
     return () => {
       map.remove();
       leafletMap.current = null;
       markersLayer.current = null;
+      overlayLayer.current = null;
     };
+
   }, []);
 
   useEffect(() => {
@@ -142,6 +162,51 @@ export default function MapView({
     if (!r) return;
     map.flyTo([r.latitude, r.longitude], 14, { duration: 0.8 });
   }, [selectedId, reports]);
+
+  // User location + clicked point overlays
+  useEffect(() => {
+    const layer = overlayLayer.current;
+    const map = leafletMap.current;
+    if (!layer || !map) return;
+    layer.clearLayers();
+
+    if (userLocation) {
+      const youIcon = L.divIcon({
+        className: "user-loc-marker",
+        html: `<div style="position:relative;width:20px;height:20px;">
+          <div style="position:absolute;inset:0;border-radius:50%;background:#22d3ee;opacity:0.35;animation:pulse 2s infinite;"></div>
+          <div style="position:absolute;inset:5px;border-radius:50%;background:#06b6d4;border:2px solid white;box-shadow:0 0 10px #22d3ee;"></div>
+        </div>`,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
+      });
+      L.marker([userLocation.lat, userLocation.lng], { icon: youIcon })
+        .bindPopup("<b>You are here</b>")
+        .addTo(layer);
+    }
+
+    if (clickedPoint) {
+      const pinIcon = L.divIcon({
+        className: "clicked-marker",
+        html: `<div style="width:16px;height:16px;border-radius:50%;background:#f59e0b;border:3px solid white;box-shadow:0 0 12px #f59e0b;"></div>`,
+        iconSize: [16, 16],
+        iconAnchor: [8, 8],
+      });
+      L.marker([clickedPoint.lat, clickedPoint.lng], { icon: pinIcon })
+        .bindPopup("<b>Selected point</b><br/>Nearby reports shown in sidebar")
+        .addTo(layer);
+      L.circle([clickedPoint.lat, clickedPoint.lng], {
+        radius: 2000,
+        color: "#f59e0b",
+        weight: 1,
+        opacity: 0.6,
+        fillColor: "#f59e0b",
+        fillOpacity: 0.08,
+      }).addTo(layer);
+    }
+  }, [userLocation, clickedPoint]);
+
+
 
   return (
     <div className="relative h-full w-full">
