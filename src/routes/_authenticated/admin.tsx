@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { MapPin, Loader2, ShieldAlert, Download } from "lucide-react";
 import { toast } from "sonner";
+import { AdminAiCopilot } from "@/components/AdminAiCopilot";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
@@ -166,6 +167,10 @@ function AdminPage() {
 
       <main className="mx-auto max-w-7xl px-6 py-10 space-y-6">
         <h1 className="text-3xl font-bold">Report management</h1>
+
+        <AdminAiCopilot />
+
+
 
         {/* Filters + bulk actions */}
         <Card>
