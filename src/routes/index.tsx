@@ -162,36 +162,36 @@ function LandingPage() {
         <div className="mb-12 flex items-center gap-3">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
           <h2 className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/50">
-            Core capabilities
+            Built to drive results
           </h2>
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <TiltCard
             icon={<Camera className="h-5 w-5" />}
-            title="Photo + GPS"
-            body="Point, shoot, submit. Auto-tagged with your exact coordinates."
+            title="Snap & pin"
+            body="Point, shoot, submit. Every report lands on the exact spot — no guesswork, no forms."
             hue="from-cyan-500/30 to-blue-600/10"
             ring="border-cyan-400/25"
           />
           <TiltCard
             icon={<MapPin className="h-5 w-5" />}
-            title="Live heatmap"
-            body="Problem hotspots across every ward. Filter by type, status, date."
+            title="Spot the hotspots"
+            body="See where your city needs attention most. Filter by issue type, status, and date."
             hue="from-emerald-500/30 to-teal-600/10"
             ring="border-emerald-400/25"
           />
           <TiltCard
             icon={<BarChart3 className="h-5 w-5" />}
-            title="Analytics"
-            body="Median resolution time, trending types, ward-level scorecards."
+            title="Hold them accountable"
+            body="Public resolution times, ward scorecards, and trend data that cannot be ignored."
             hue="from-indigo-500/30 to-purple-600/10"
             ring="border-indigo-400/25"
           />
           <TiltCard
             icon={<Users className="h-5 w-5" />}
-            title="Role-based"
-            body="Citizens report. Admins resolve. NGOs analyze. One dashboard."
+            title="Built for everyone"
+            body="Citizens report, officials respond, NGOs analyze — all on one transparent platform."
             hue="from-amber-500/30 to-rose-600/10"
             ring="border-amber-400/25"
           />
