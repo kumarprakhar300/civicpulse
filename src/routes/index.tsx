@@ -113,25 +113,26 @@ function LandingPage() {
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 backdrop-blur-md">
               <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
               <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">
-                Live civic intelligence
+                Citizen-powered accountability
               </span>
             </div>
             <h1 className="mt-6 text-5xl font-extrabold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
               <span className="bg-gradient-to-b from-white via-white to-white/40 bg-clip-text text-transparent">
-                See it.
+                Your street.
               </span>
               <br />
               <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 bg-clip-text text-transparent">
-                Report it.
+                Your voice.
               </span>
               <br />
               <span className="bg-gradient-to-b from-white via-white to-white/40 bg-clip-text text-transparent">
-                Fix it.
+                Your fix.
               </span>
             </h1>
             <p className="mx-auto mt-6 max-w-md text-base leading-relaxed text-slate-400 lg:mx-0 lg:text-lg">
-              Snap a photo. We tag the location. Your city sees it. Everyone sees who's fixing what —
-              and who isn't. Open data, real accountability.
+              Snap a photo of any civic issue — potholes, garbage, broken lights — and pin it to a
+              live public map. Track every fix from report to resolution. When the data is open,
+              accountability follows.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
               {email ? (
