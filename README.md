@@ -8,6 +8,8 @@ hotspots on the public dashboard.
 Portfolio B2G SaaS demo — the analytics layer is the pitch to municipal
 corporations and NGOs.
 
+> **Live demo:** https://civicproblem.lovable.app
+
 ## Features
 
 - Email + Google auth
