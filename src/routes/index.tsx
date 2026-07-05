@@ -113,39 +113,40 @@ function LandingPage() {
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 backdrop-blur-md">
               <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
               <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">
-                Live civic intelligence
+                Citizen-powered accountability
               </span>
             </div>
             <h1 className="mt-6 text-5xl font-extrabold leading-[0.95] tracking-tight sm:text-6xl lg:text-7xl">
               <span className="bg-gradient-to-b from-white via-white to-white/40 bg-clip-text text-transparent">
-                See it.
+                Your street.
               </span>
               <br />
               <span className="bg-gradient-to-r from-cyan-300 via-blue-400 to-indigo-400 bg-clip-text text-transparent">
-                Report it.
+                Your voice.
               </span>
               <br />
               <span className="bg-gradient-to-b from-white via-white to-white/40 bg-clip-text text-transparent">
-                Fix it.
+                Your fix.
               </span>
             </h1>
             <p className="mx-auto mt-6 max-w-md text-base leading-relaxed text-slate-400 lg:mx-0 lg:text-lg">
-              Snap a photo. We tag the location. Your city sees it. Everyone sees who's fixing what —
-              and who isn't. Open data, real accountability.
+              Snap a photo of any civic issue — potholes, garbage, broken lights — and pin it to a
+              live public map. Track every fix from report to resolution. When the data is open,
+              accountability follows.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
               {email ? (
                 <Link to="/report">
-                  <GradientCTA>Report an issue <ArrowRight className="h-4 w-4" /></GradientCTA>
+                  <GradientCTA>Report an issue now <ArrowRight className="h-4 w-4" /></GradientCTA>
                 </Link>
               ) : (
                 <Link to="/auth">
-                  <GradientCTA>Get started free <ArrowRight className="h-4 w-4" /></GradientCTA>
+                  <GradientCTA>Start reporting free <ArrowRight className="h-4 w-4" /></GradientCTA>
                 </Link>
               )}
               <Link to="/map">
                 <button className="rounded-2xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-white backdrop-blur-md transition hover:bg-white/10">
-                  View public map
+                  Explore the map
                 </button>
               </Link>
             </div>
@@ -161,36 +162,36 @@ function LandingPage() {
         <div className="mb-12 flex items-center gap-3">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
           <h2 className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/50">
-            Core capabilities
+            Built to drive results
           </h2>
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <TiltCard
             icon={<Camera className="h-5 w-5" />}
-            title="Photo + GPS"
-            body="Point, shoot, submit. Auto-tagged with your exact coordinates."
+            title="Snap & pin"
+            body="Point, shoot, submit. Every report lands on the exact spot — no guesswork, no forms."
             hue="from-cyan-500/30 to-blue-600/10"
             ring="border-cyan-400/25"
           />
           <TiltCard
             icon={<MapPin className="h-5 w-5" />}
-            title="Live heatmap"
-            body="Problem hotspots across every ward. Filter by type, status, date."
+            title="Spot the hotspots"
+            body="See where your city needs attention most. Filter by issue type, status, and date."
             hue="from-emerald-500/30 to-teal-600/10"
             ring="border-emerald-400/25"
           />
           <TiltCard
             icon={<BarChart3 className="h-5 w-5" />}
-            title="Analytics"
-            body="Median resolution time, trending types, ward-level scorecards."
+            title="Hold them accountable"
+            body="Public resolution times, ward scorecards, and trend data that cannot be ignored."
             hue="from-indigo-500/30 to-purple-600/10"
             ring="border-indigo-400/25"
           />
           <TiltCard
             icon={<Users className="h-5 w-5" />}
-            title="Role-based"
-            body="Citizens report. Admins resolve. NGOs analyze. One dashboard."
+            title="Built for everyone"
+            body="Citizens report, officials respond, NGOs analyze — all on one transparent platform."
             hue="from-amber-500/30 to-rose-600/10"
             ring="border-amber-400/25"
           />
