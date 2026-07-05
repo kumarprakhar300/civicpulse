@@ -137,16 +137,16 @@ function LandingPage() {
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
               {email ? (
                 <Link to="/report">
-                  <GradientCTA>Report an issue <ArrowRight className="h-4 w-4" /></GradientCTA>
+                  <GradientCTA>Report an issue now <ArrowRight className="h-4 w-4" /></GradientCTA>
                 </Link>
               ) : (
                 <Link to="/auth">
-                  <GradientCTA>Get started free <ArrowRight className="h-4 w-4" /></GradientCTA>
+                  <GradientCTA>Start reporting free <ArrowRight className="h-4 w-4" /></GradientCTA>
                 </Link>
               )}
               <Link to="/map">
                 <button className="rounded-2xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-white backdrop-blur-md transition hover:bg-white/10">
-                  View public map
+                  Explore the map
                 </button>
               </Link>
             </div>
