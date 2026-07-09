@@ -72,12 +72,20 @@ function ReportPage() {
   const [dupChecking, setDupChecking] = useState(false);
   const [duplicates, setDuplicates] = useState<DupMatch[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [isSos, setIsSos] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     getLocation();
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("sos") === "1") {
+        setIsSos(true);
+        setSeverity(5);
+      }
+    }
   }, []);
 
   // Debounced duplicate check when title/loc changes
