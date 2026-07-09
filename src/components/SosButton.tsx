@@ -21,6 +21,6 @@ export function SosButton() {
         <Siren className="relative h-5 w-5" />
       </span>
       <span className="tracking-wider">SOS</span>
-    </Link>
+    </a>
   );
 }
