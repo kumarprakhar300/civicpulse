@@ -248,6 +248,17 @@ function ReportPage() {
         </div>
 
         <GlassCard className="p-8">
+          {isSos && (
+            <div className="mb-6 flex items-start gap-3 rounded-xl border border-red-400/40 bg-gradient-to-br from-red-500/15 to-rose-600/10 p-4">
+              <Siren className="mt-0.5 h-5 w-5 shrink-0 text-red-300" />
+              <div className="text-sm">
+                <div className="font-bold text-red-100">Urgent SOS report</div>
+                <p className="mt-0.5 text-xs text-red-100/80">
+                  Marked as severity 5 for fastest triage. Snap a photo — your location is already being captured.
+                </p>
+              </div>
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Photo first — triggers AI */}
             <div className="space-y-2">
