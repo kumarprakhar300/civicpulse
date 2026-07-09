@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Camera, Loader2, Check, Upload, Sparkles, AlertTriangle } from "lucide-react";
+import { Camera, Loader2, Check, Upload, Sparkles, AlertTriangle, Siren } from "lucide-react";
 import { PageShell, GlassCard } from "@/components/PageShell";
 import {
   analyzeReportPhoto,
