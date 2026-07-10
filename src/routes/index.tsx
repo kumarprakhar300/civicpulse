@@ -199,12 +199,125 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* 3D How-it-works pipeline */}
+      <section className="relative z-10 mx-auto max-w-6xl px-6 pb-24">
+        <div className="mb-12 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 backdrop-blur-md">
+            <Sparkles className="h-3 w-3 text-cyan-300" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">How it works</span>
+          </div>
+          <h2 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
+            <span className="bg-gradient-to-b from-white to-white/50 bg-clip-text text-transparent">Three taps to a real fix</span>
+          </h2>
+        </div>
+        <div className="grid gap-6 md:grid-cols-3 [perspective:1600px]">
+          <StepCube step="01" title="Capture" body="Snap a photo — we auto-tag GPS, ward, and category using AI." icon={<Camera className="h-5 w-5" />} tone="from-cyan-500/40 to-blue-600/10" />
+          <StepCube step="02" title="Route" body="Report lands in the right department's queue with SLA timers running." icon={<Zap className="h-5 w-5" />} tone="from-violet-500/40 to-indigo-600/10" />
+          <StepCube step="03" title="Resolve" body="You get push updates. Public timeline shows every action taken." icon={<CheckCircle2 className="h-5 w-5" />} tone="from-emerald-500/40 to-teal-600/10" />
+        </div>
+      </section>
+
+      {/* 3D Stats slab */}
+      <section className="relative z-10 mx-auto max-w-6xl px-6 pb-24">
+        <div className="relative [perspective:1400px]">
+          <div className="absolute -inset-4 rounded-[2.5rem] bg-gradient-to-br from-cyan-500/20 via-blue-500/10 to-indigo-500/20 blur-3xl" />
+          <div
+            className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.01] p-10 backdrop-blur-2xl"
+            style={{ transform: "rotateX(4deg)", transformStyle: "preserve-3d" }}
+          >
+            <div
+              className="absolute inset-0 opacity-30"
+              style={{
+                backgroundImage:
+                  "linear-gradient(rgba(125,211,252,0.18) 1px, transparent 1px), linear-gradient(90deg, rgba(125,211,252,0.18) 1px, transparent 1px)",
+                backgroundSize: "40px 40px",
+                maskImage: "radial-gradient(ellipse at center, black 30%, transparent 80%)",
+              }}
+            />
+            <div className="relative grid gap-8 sm:grid-cols-2 lg:grid-cols-4" style={{ transform: "translateZ(40px)" }}>
+              <StatBlock value="12,847" label="Issues reported" trend="+24% MoM" color="text-cyan-300" />
+              <StatBlock value="8,921" label="Fixes verified" trend="69% resolve rate" color="text-emerald-300" />
+              <StatBlock value="4.2 days" label="Avg resolution" trend="↓ 1.8 days YoY" color="text-amber-300" />
+              <StatBlock value="142" label="Active wards" trend="Nationwide coverage" color="text-indigo-300" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* More features */}
+      <section className="relative z-10 mx-auto max-w-6xl px-6 pb-24">
+        <div className="mb-12 flex items-center gap-3">
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+          <h2 className="text-[10px] font-bold uppercase tracking-[0.3em] text-white/50">More power under the hood</h2>
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+        </div>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <TiltCard icon={<Bell className="h-5 w-5" />} title="Live notifications" body="Push + email updates the moment your report changes status." hue="from-pink-500/30 to-rose-600/10" ring="border-pink-400/25" />
+          <TiltCard icon={<Shield className="h-5 w-5" />} title="Verified officials" body="Only authenticated municipal staff can mark issues resolved." hue="from-sky-500/30 to-blue-600/10" ring="border-sky-400/25" />
+          <TiltCard icon={<Trophy className="h-5 w-5" />} title="Reporter reputation" body="Earn badges and climb the civic leaderboard for verified reports." hue="from-yellow-500/30 to-orange-600/10" ring="border-yellow-400/25" />
+          <TiltCard icon={<Sparkles className="h-5 w-5" />} title="AI triage" body="Smart categorization routes reports to the right department instantly." hue="from-fuchsia-500/30 to-purple-600/10" ring="border-fuchsia-400/25" />
+          <TiltCard icon={<Clock className="h-5 w-5" />} title="SLA tracking" body="Every issue gets a resolution deadline. Miss it, everyone sees." hue="from-red-500/30 to-orange-600/10" ring="border-red-400/25" />
+          <TiltCard icon={<Zap className="h-5 w-5" />} title="One-tap SOS" body="Urgent hazards? Fire the SOS button for priority escalation." hue="from-cyan-500/30 to-emerald-600/10" ring="border-cyan-400/25" />
+        </div>
+      </section>
+
+      {/* 3D CTA */}
+      <section className="relative z-10 mx-auto max-w-4xl px-6 pb-24">
+        <div className="relative [perspective:1200px]">
+          <div className="absolute -inset-6 rounded-[2.5rem] bg-gradient-to-r from-cyan-500/30 via-blue-500/20 to-indigo-500/30 blur-3xl" />
+          <div
+            className="relative overflow-hidden rounded-[2rem] border border-white/15 bg-gradient-to-br from-slate-900/80 to-slate-950/80 p-12 text-center backdrop-blur-2xl"
+            style={{ transform: "rotateX(-3deg)", transformStyle: "preserve-3d" }}
+          >
+            <div className="pointer-events-none absolute -top-20 left-1/2 h-40 w-[120%] -translate-x-1/2 rounded-full bg-cyan-500/20 blur-3xl" />
+            <h3 className="relative text-3xl font-extrabold sm:text-4xl">
+              <span className="bg-gradient-to-b from-white to-white/50 bg-clip-text text-transparent">Your city won't fix itself.</span>
+            </h3>
+            <p className="relative mx-auto mt-3 max-w-md text-sm text-slate-400">Join thousands of citizens turning complaints into results.</p>
+            <div className="relative mt-6 flex justify-center">
+              <Link to={email ? "/report" : "/auth"}>
+                <GradientCTA>Start reporting free <ArrowRight className="h-4 w-4" /></GradientCTA>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <footer className="relative z-10 border-t border-white/5 py-8 text-center text-xs text-slate-500">
         Built as a civic tech portfolio project · CivicPulse
       </footer>
     </div>
   );
 }
+
+function StepCube({ step, title, body, icon, tone }: { step: string; title: string; body: string; icon: React.ReactNode; tone: string }) {
+  return (
+    <div className="group relative h-full [perspective:1000px]">
+      <div className={`absolute -inset-1 rounded-2xl bg-gradient-to-br ${tone} opacity-40 blur-xl transition group-hover:opacity-80`} />
+      <div className="relative flex h-full flex-col rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-xl transition-transform duration-500 group-hover:[transform:rotateY(-8deg)_rotateX(4deg)_translateZ(10px)]">
+        <div className="flex items-center justify-between">
+          <span className="text-4xl font-black text-white/10">{step}</span>
+          <div className={`inline-flex h-11 w-11 items-center justify-center rounded-xl border border-white/15 bg-gradient-to-br ${tone} text-white shadow-[inset_0_0_14px_rgba(255,255,255,0.2)]`}>
+            {icon}
+          </div>
+        </div>
+        <h3 className="mt-4 text-lg font-semibold text-white">{title}</h3>
+        <p className="mt-1.5 text-sm leading-relaxed text-slate-400">{body}</p>
+      </div>
+    </div>
+  );
+}
+
+function StatBlock({ value, label, trend, color }: { value: string; label: string; trend: string; color: string }) {
+  return (
+    <div className="text-center sm:text-left">
+      <div className={`text-4xl font-extrabold tracking-tight ${color} drop-shadow-[0_0_20px_currentColor]`}>{value}</div>
+      <div className="mt-1 text-sm font-medium text-white/80">{label}</div>
+      <div className="mt-0.5 text-xs text-slate-400">{trend}</div>
+    </div>
+  );
+}
+
 
 function NavLink({ to, label }: { to: string; label: string }) {
   return (
