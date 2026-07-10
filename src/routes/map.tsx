@@ -15,9 +15,12 @@ import {
   Crosshair,
   Navigation,
   LocateFixed,
-
+  Box,
+  Map as MapIcon,
 } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
+import Map3DView from "@/components/Map3DView";
+
 
 export const Route = createFileRoute("/map")({
   head: () => ({
@@ -52,9 +55,11 @@ function MapPage() {
   const [status, setStatus] = useState("all");
   const [q, setQ] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"2d" | "3d">("2d");
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [clickedPoint, setClickedPoint] = useState<{ lat: number; lng: number } | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
+
   const [MapView, setMapView] = useState<React.ComponentType<{
     reports: any[];
     filter: string;
@@ -206,6 +211,27 @@ function MapPage() {
             ))}
           </div>
 
+          <div className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 p-1 backdrop-blur-xl">
+            <button
+              onClick={() => setViewMode("2d")}
+              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs transition ${
+                viewMode === "2d" ? "bg-white text-slate-950" : "text-slate-300 hover:bg-white/10"
+              }`}
+            >
+              <MapIcon className="h-3 w-3" /> 2D
+            </button>
+            <button
+              onClick={() => setViewMode("3d")}
+              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs transition ${
+                viewMode === "3d"
+                  ? "bg-gradient-to-r from-cyan-400 to-indigo-500 text-slate-950"
+                  : "text-slate-300 hover:bg-white/10"
+              }`}
+            >
+              <Box className="h-3 w-3" /> 3D
+            </button>
+          </div>
+
           <button
             onClick={locateMe}
             title="Use my live location"
@@ -214,6 +240,7 @@ function MapPage() {
             <LocateFixed className="h-3.5 w-3.5" />
             My location
           </button>
+
         </div>
       </div>
 
@@ -257,7 +284,14 @@ function MapPage() {
               <Loader2 className="h-8 w-8 animate-spin text-cyan-300" />
             </div>
           )}
-          {MapView ? (
+          {viewMode === "3d" ? (
+            <Map3DView
+              reports={filtered}
+              selectedId={selectedId}
+              userLocation={userLocation}
+              onSelect={setSelectedId}
+            />
+          ) : MapView ? (
             <Suspense
               fallback={
                 <div className="flex h-full items-center justify-center">
@@ -280,6 +314,7 @@ function MapPage() {
               Booting map engine…
             </div>
           )}
+
         </div>
 
         {/* Sidebar: nearby + live feed */}
