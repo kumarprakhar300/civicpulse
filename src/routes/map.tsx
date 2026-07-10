@@ -211,6 +211,27 @@ function MapPage() {
             ))}
           </div>
 
+          <div className="flex items-center gap-1 rounded-full border border-white/10 bg-white/5 p-1 backdrop-blur-xl">
+            <button
+              onClick={() => setViewMode("2d")}
+              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs transition ${
+                viewMode === "2d" ? "bg-white text-slate-950" : "text-slate-300 hover:bg-white/10"
+              }`}
+            >
+              <MapIcon className="h-3 w-3" /> 2D
+            </button>
+            <button
+              onClick={() => setViewMode("3d")}
+              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs transition ${
+                viewMode === "3d"
+                  ? "bg-gradient-to-r from-cyan-400 to-indigo-500 text-slate-950"
+                  : "text-slate-300 hover:bg-white/10"
+              }`}
+            >
+              <Box className="h-3 w-3" /> 3D
+            </button>
+          </div>
+
           <button
             onClick={locateMe}
             title="Use my live location"
@@ -219,6 +240,7 @@ function MapPage() {
             <LocateFixed className="h-3.5 w-3.5" />
             My location
           </button>
+
         </div>
       </div>
 
