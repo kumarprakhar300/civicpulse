@@ -284,7 +284,14 @@ function MapPage() {
               <Loader2 className="h-8 w-8 animate-spin text-cyan-300" />
             </div>
           )}
-          {MapView ? (
+          {viewMode === "3d" ? (
+            <Map3DView
+              reports={filtered}
+              selectedId={selectedId}
+              userLocation={userLocation}
+              onSelect={setSelectedId}
+            />
+          ) : MapView ? (
             <Suspense
               fallback={
                 <div className="flex h-full items-center justify-center">
@@ -307,6 +314,7 @@ function MapPage() {
               Booting map engine…
             </div>
           )}
+
         </div>
 
         {/* Sidebar: nearby + live feed */}
