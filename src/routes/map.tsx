@@ -15,9 +15,12 @@ import {
   Crosshair,
   Navigation,
   LocateFixed,
-
+  Box,
+  Map as MapIcon,
 } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
+import Map3DView from "@/components/Map3DView";
+
 
 export const Route = createFileRoute("/map")({
   head: () => ({
