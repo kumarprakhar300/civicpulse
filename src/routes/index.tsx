@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { MapPin, Camera, BarChart3, Users, ArrowRight, Zap } from "lucide-react";
+import { MapPin, Camera, BarChart3, Users, ArrowRight, Zap, Shield, Bell, Trophy, Sparkles, Clock, CheckCircle2 } from "lucide-react";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
