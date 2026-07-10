@@ -55,9 +55,11 @@ function MapPage() {
   const [status, setStatus] = useState("all");
   const [q, setQ] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"2d" | "3d">("2d");
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [clickedPoint, setClickedPoint] = useState<{ lat: number; lng: number } | null>(null);
   const [geoError, setGeoError] = useState<string | null>(null);
+
   const [MapView, setMapView] = useState<React.ComponentType<{
     reports: any[];
     filter: string;
