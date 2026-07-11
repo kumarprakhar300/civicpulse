@@ -541,8 +541,35 @@ function RotatingCube() {
     "rotateX(-90deg) translateZ(140px)",
   ];
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [active, setActive] = useState(false);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) setActive(e.isIntersecting);
+      },
+      { threshold: 0.25 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  const playState = active ? "running" : "paused";
+  const enterStyle: React.CSSProperties = {
+    opacity: active ? 1 : 0,
+    transform: active ? "translateY(0) scale(1)" : "translateY(40px) scale(0.9)",
+    transition: "opacity 800ms ease-out, transform 800ms cubic-bezier(0.22, 1, 0.36, 1)",
+  };
+
   return (
-    <div className="relative mx-auto flex h-[440px] w-full items-center justify-center [perspective:1600px]">
+    <div
+      ref={containerRef}
+      className="relative mx-auto flex h-[440px] w-full items-center justify-center [perspective:1600px]"
+      style={enterStyle}
+    >
       {/* Ambient glow bed */}
       <div className="absolute inset-x-0 top-1/2 h-64 -translate-y-1/2 bg-gradient-to-r from-fuchsia-500/10 via-cyan-500/10 to-indigo-500/10 blur-3xl" />
       {/* Floor reflection */}
@@ -556,6 +583,7 @@ function RotatingCube() {
         style={{
           transformStyle: "preserve-3d",
           animation: "cubeSpin 20s linear infinite",
+          animationPlayState: playState,
         }}
       >
         {faces.map((f, i) => (
@@ -585,6 +613,9 @@ function RotatingCube() {
           style={{
             animation: `orbitParticle ${8 + i}s linear infinite`,
             animationDelay: `${i * -1.1}s`,
+            animationPlayState: playState,
+            opacity: active ? 1 : 0,
+            transition: "opacity 600ms ease-out",
           }}
         />
       ))}
