@@ -551,7 +551,7 @@ function RotatingCube() {
       (entries) => {
         for (const e of entries) setActive(e.isIntersecting);
       },
-      { threshold: 0.25 },
+      { threshold: 0.15, rootMargin: "0px 0px -50px 0px" },
     );
     io.observe(el);
     return () => io.disconnect();
@@ -560,8 +560,8 @@ function RotatingCube() {
   const playState = active ? "running" : "paused";
   const enterStyle: React.CSSProperties = {
     opacity: active ? 1 : 0,
-    transform: active ? "translateY(0) scale(1)" : "translateY(40px) scale(0.9)",
-    transition: "opacity 800ms ease-out, transform 800ms cubic-bezier(0.22, 1, 0.36, 1)",
+    transform: active ? "translateY(0) scale(1)" : "translateY(40px) scale(0.92)",
+    transition: "opacity 1000ms ease-out, transform 1000ms cubic-bezier(0.22, 1, 0.36, 1)",
   };
 
   return (
@@ -582,7 +582,7 @@ function RotatingCube() {
         className="relative h-[280px] w-[280px]"
         style={{
           transformStyle: "preserve-3d",
-          animation: "cubeSpin 20s linear infinite",
+          animation: "cubeSpin 24s linear infinite",
           animationPlayState: playState,
         }}
       >
@@ -611,11 +611,11 @@ function RotatingCube() {
           key={i}
           className="pointer-events-none absolute left-1/2 top-1/2 h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_12px_currentColor]"
           style={{
-            animation: `orbitParticle ${8 + i}s linear infinite`,
-            animationDelay: `${i * -1.1}s`,
+            animation: `orbitParticle ${10 + i * 1.5}s linear infinite`,
+            animationDelay: `${i * -1.5}s`,
             animationPlayState: playState,
             opacity: active ? 1 : 0,
-            transition: "opacity 600ms ease-out",
+            transition: "opacity 900ms ease-out",
           }}
         />
       ))}
