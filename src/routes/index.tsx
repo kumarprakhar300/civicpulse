@@ -551,7 +551,7 @@ function RotatingCube() {
       (entries) => {
         for (const e of entries) setActive(e.isIntersecting);
       },
-      { threshold: 0.25 },
+      { threshold: 0.15, rootMargin: "0px 0px -50px 0px" },
     );
     io.observe(el);
     return () => io.disconnect();
@@ -560,8 +560,8 @@ function RotatingCube() {
   const playState = active ? "running" : "paused";
   const enterStyle: React.CSSProperties = {
     opacity: active ? 1 : 0,
-    transform: active ? "translateY(0) scale(1)" : "translateY(40px) scale(0.9)",
-    transition: "opacity 800ms ease-out, transform 800ms cubic-bezier(0.22, 1, 0.36, 1)",
+    transform: active ? "translateY(0) scale(1)" : "translateY(40px) scale(0.92)",
+    transition: "opacity 1000ms ease-out, transform 1000ms cubic-bezier(0.22, 1, 0.36, 1)",
   };
 
   return (
