@@ -199,6 +199,23 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* 3D Rotating Cube Showcase */}
+      <section className="relative z-10 mx-auto max-w-6xl px-6 pb-24">
+        <div className="mb-12 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 backdrop-blur-md">
+            <Sparkles className="h-3 w-3 text-fuchsia-300" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">Every angle covered</span>
+          </div>
+          <h2 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
+            <span className="bg-gradient-to-b from-white to-white/50 bg-clip-text text-transparent">Six faces. One mission.</span>
+          </h2>
+          <p className="mx-auto mt-3 max-w-md text-sm text-slate-400">
+            A spinning window into the issues your city faces every day.
+          </p>
+        </div>
+        <RotatingCube />
+      </section>
+
       {/* 3D How-it-works pipeline */}
       <section className="relative z-10 mx-auto max-w-6xl px-6 pb-24">
         <div className="mb-12 text-center">
