@@ -582,7 +582,7 @@ function RotatingCube() {
         className="relative h-[280px] w-[280px]"
         style={{
           transformStyle: "preserve-3d",
-          animation: "cubeSpin 20s linear infinite",
+          animation: "cubeSpin 24s linear infinite",
           animationPlayState: playState,
         }}
       >
@@ -611,11 +611,11 @@ function RotatingCube() {
           key={i}
           className="pointer-events-none absolute left-1/2 top-1/2 h-1.5 w-1.5 rounded-full bg-cyan-300 shadow-[0_0_12px_currentColor]"
           style={{
-            animation: `orbitParticle ${8 + i}s linear infinite`,
-            animationDelay: `${i * -1.1}s`,
+            animation: `orbitParticle ${10 + i * 1.5}s linear infinite`,
+            animationDelay: `${i * -1.5}s`,
             animationPlayState: playState,
             opacity: active ? 1 : 0,
-            transition: "opacity 600ms ease-out",
+            transition: "opacity 900ms ease-out",
           }}
         />
       ))}
