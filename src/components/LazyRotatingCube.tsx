@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { CubePlaceholder } from "./CubePlaceholder";
 import type { RotatingCubeProps } from "./RotatingCube";
 
@@ -24,6 +25,7 @@ export function LazyRotatingCube() {
   const [loaded, setLoaded] = useState(false);
   const [showPlaceholder, setShowPlaceholder] = useState(true);
   const importingRef = useRef(false);
+  const reducedMotion = usePrefersReducedMotion();
 
 
   // Idle prefetch: load the chunk when the browser has spare time.
@@ -91,19 +93,29 @@ export function LazyRotatingCube() {
   }, [visible, CubeComponent]);
 
   // Start the fade-in only after the component has been mounted in the DOM
-  // so the opacity transition is visible.
+  // so the opacity transition is visible. Skip the fade entirely for users
+  // who prefer reduced motion.
   useEffect(() => {
     if (!CubeComponent) return;
+    if (reducedMotion) {
+      setLoaded(true);
+      return;
+    }
     const timer = setTimeout(() => setLoaded(true), 50);
     return () => clearTimeout(timer);
-  }, [CubeComponent]);
+  }, [CubeComponent, reducedMotion]);
 
   // Unmount the placeholder once the fade-out finishes so it stops rendering.
+  // When reduced motion is preferred, unmount immediately.
   useEffect(() => {
     if (!loaded) return;
+    if (reducedMotion) {
+      setShowPlaceholder(false);
+      return;
+    }
     const timer = setTimeout(() => setShowPlaceholder(false), 550);
     return () => clearTimeout(timer);
-  }, [loaded]);
+  }, [loaded, reducedMotion]);
 
   return (
     <div
@@ -114,18 +126,20 @@ export function LazyRotatingCube() {
       {showPlaceholder && (
         <div
           className={cn(
-            "absolute inset-0 transition-opacity duration-500 ease-out",
+            "absolute inset-0",
+            !reducedMotion && "transition-opacity duration-500 ease-out",
             loaded ? "pointer-events-none opacity-0" : "opacity-100"
           )}
           aria-hidden={loaded}
         >
-          <CubePlaceholder />
+          <CubePlaceholder reducedMotion={reducedMotion} />
         </div>
       )}
       {CubeComponent && (
         <div
           className={cn(
-            "absolute inset-0 transition-opacity duration-500 ease-out",
+            "absolute inset-0",
+            !reducedMotion && "transition-opacity duration-500 ease-out",
             loaded ? "opacity-100" : "opacity-0"
           )}
         >
