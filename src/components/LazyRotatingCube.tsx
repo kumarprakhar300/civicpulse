@@ -106,11 +106,16 @@ export function LazyRotatingCube() {
   }, [CubeComponent, reducedMotion]);
 
   // Unmount the placeholder once the fade-out finishes so it stops rendering.
+  // When reduced motion is preferred, unmount immediately.
   useEffect(() => {
     if (!loaded) return;
+    if (reducedMotion) {
+      setShowPlaceholder(false);
+      return;
+    }
     const timer = setTimeout(() => setShowPlaceholder(false), 550);
     return () => clearTimeout(timer);
-  }, [loaded]);
+  }, [loaded, reducedMotion]);
 
   return (
     <div
