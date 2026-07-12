@@ -1,4 +1,5 @@
 import { Suspense, lazy, useEffect, useRef, useState } from "react";
+import { CubePlaceholder } from "./CubePlaceholder";
 
 const RotatingCube = lazy(() => import("./RotatingCube").then((m) => ({ default: m.RotatingCube })));
 
