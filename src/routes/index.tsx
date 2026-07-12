@@ -522,6 +522,20 @@ function TiltCard({
   );
 }
 
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const onChange = () => setReduced(mq.matches);
+    onChange();
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  return reduced;
+}
+
 function RotatingCube() {
   const faces = [
     { label: "Potholes", value: "3,142", color: "from-rose-500/60 to-red-600/30", accent: "text-rose-200", icon: <MapPin className="h-6 w-6" /> },
@@ -557,12 +571,15 @@ function RotatingCube() {
     return () => io.disconnect();
   }, []);
 
-  const playState = active ? "running" : "paused";
-  const enterStyle: React.CSSProperties = {
-    opacity: active ? 1 : 0,
-    transform: active ? "translateY(0) scale(1)" : "translateY(40px) scale(0.92)",
-    transition: "opacity 1000ms ease-out, transform 1000ms cubic-bezier(0.22, 1, 0.36, 1)",
-  };
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const playState = active && !prefersReducedMotion ? "running" : "paused";
+  const enterStyle: React.CSSProperties = prefersReducedMotion
+    ? { opacity: active ? 1 : 0 }
+    : {
+        opacity: active ? 1 : 0,
+        transform: active ? "translateY(0) scale(1)" : "translateY(40px) scale(0.92)",
+        transition: "opacity 1000ms ease-out, transform 1000ms cubic-bezier(0.22, 1, 0.36, 1)",
+      };
 
   return (
     <div
