@@ -522,6 +522,20 @@ function TiltCard({
   );
 }
 
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const onChange = () => setReduced(mq.matches);
+    onChange();
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  return reduced;
+}
+
 function RotatingCube() {
   const faces = [
     { label: "Potholes", value: "3,142", color: "from-rose-500/60 to-red-600/30", accent: "text-rose-200", icon: <MapPin className="h-6 w-6" /> },
