@@ -25,6 +25,7 @@ export function LazyRotatingCube() {
   const [loaded, setLoaded] = useState(false);
   const [showPlaceholder, setShowPlaceholder] = useState(true);
   const importingRef = useRef(false);
+  const reducedMotion = usePrefersReducedMotion();
 
 
   // Idle prefetch: load the chunk when the browser has spare time.
