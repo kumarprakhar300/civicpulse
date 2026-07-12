@@ -571,12 +571,15 @@ function RotatingCube() {
     return () => io.disconnect();
   }, []);
 
-  const playState = active ? "running" : "paused";
-  const enterStyle: React.CSSProperties = {
-    opacity: active ? 1 : 0,
-    transform: active ? "translateY(0) scale(1)" : "translateY(40px) scale(0.92)",
-    transition: "opacity 1000ms ease-out, transform 1000ms cubic-bezier(0.22, 1, 0.36, 1)",
-  };
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const playState = active && !prefersReducedMotion ? "running" : "paused";
+  const enterStyle: React.CSSProperties = prefersReducedMotion
+    ? { opacity: active ? 1 : 0 }
+    : {
+        opacity: active ? 1 : 0,
+        transform: active ? "translateY(0) scale(1)" : "translateY(40px) scale(0.92)",
+        transition: "opacity 1000ms ease-out, transform 1000ms cubic-bezier(0.22, 1, 0.36, 1)",
+      };
 
   return (
     <div
