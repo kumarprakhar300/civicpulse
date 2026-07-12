@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { createHash } from "crypto";
 
 // These analytics helpers wrap SECURITY DEFINER RPCs that are no longer
 // callable by anon/authenticated roles. We invoke them through the trusted
@@ -25,23 +26,44 @@ export const getWardScorecards = createServerFn({ method: "GET" }).handler(async
   }>;
 });
 
+// Public leaderboard. Do NOT return raw user_id — expose a stable, non-identifying
+// pseudonym derived from a one-way hash so anonymous visitors can't enumerate
+// real account IDs from the top-citizens list.
 export const getTopCitizens = createServerFn({ method: "GET" }).handler(async () => {
   const sb = await admin();
   const { data, error } = await sb.rpc("top_citizens" as any, { _limit: 10 });
   if (error) throw new Error(error.message);
-  return (data ?? []) as Array<{
+  const rows = (data ?? []) as Array<{
     user_id: string;
     reports_count: number;
     upvotes_received: number;
     reputation: number;
   }>;
+  return rows.map((r, i) => ({
+    rank: i + 1,
+    citizen_label: `Citizen #${createHash("sha256").update(r.user_id).digest("hex").slice(0, 8)}`,
+    reports_count: r.reports_count,
+    upvotes_received: r.upvotes_received,
+    reputation: r.reputation,
+  }));
 });
 
+// User stats require authentication. A user may only fetch their own stats;
+// admins may fetch any user's stats.
 export const getUserStats = createServerFn({ method: "POST" })
-  .inputValidator((d: { userId: string }) => z.object({ userId: z.string().uuid() }).parse(d))
-  .handler(async ({ data }) => {
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { userId?: string } | undefined) => d ?? {})
+  .handler(async ({ data, context }) => {
+    const requestedId = data.userId ?? context.userId;
+    if (requestedId !== context.userId) {
+      const { data: isAdmin } = await context.supabase.rpc("has_role", {
+        _user_id: context.userId,
+        _role: "admin",
+      });
+      if (!isAdmin) throw new Error("Forbidden");
+    }
     const sb = await admin();
-    const { data: rows, error } = await sb.rpc("user_stats" as any, { _user_id: data.userId });
+    const { data: rows, error } = await sb.rpc("user_stats" as any, { _user_id: requestedId });
     if (error) throw new Error(error.message);
     const s = (rows ?? [])[0] ?? {
       reports_count: 0,
