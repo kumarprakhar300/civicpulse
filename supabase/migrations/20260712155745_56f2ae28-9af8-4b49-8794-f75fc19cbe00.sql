@@ -1,0 +1,2 @@
+REVOKE SELECT ON public.reports FROM anon;
+GRANT SELECT (id, title, description, issue_type, latitude, longitude, photo_url, status, ward, created_at, updated_at, resolved_at, department, upvote_count, severity, ai_summary, ai_categorized, priority_score, sla_hours, sla_due_at, resolution_photo_url) ON public.reports TO anon;
