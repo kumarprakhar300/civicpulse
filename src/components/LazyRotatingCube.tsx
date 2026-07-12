@@ -1,4 +1,5 @@
 import { Suspense, lazy, useEffect, useRef, useState } from "react";
+import { CubePlaceholder } from "./CubePlaceholder";
 
 const RotatingCube = lazy(() => import("./RotatingCube").then((m) => ({ default: m.RotatingCube })));
 
@@ -78,19 +79,11 @@ export function LazyRotatingCube() {
       aria-label="3D issue cube showcase"
     >
       {visible ? (
-        <Suspense
-          fallback={
-            <div className="flex h-full w-full items-center justify-center">
-              <div className="h-64 w-full bg-gradient-to-r from-fuchsia-500/5 via-cyan-500/5 to-indigo-500/5 blur-3xl" />
-            </div>
-          }
-        >
+        <Suspense fallback={<CubePlaceholder />}>
           <RotatingCube active={active} />
         </Suspense>
       ) : (
-        <div className="flex h-full w-full items-center justify-center">
-          <div className="h-64 w-full bg-gradient-to-r from-fuchsia-500/5 via-cyan-500/5 to-indigo-500/5 blur-3xl" />
-        </div>
+        <CubePlaceholder />
       )}
     </div>
   );
