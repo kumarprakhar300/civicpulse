@@ -208,7 +208,7 @@ function LeaderboardPage() {
               <ol className="space-y-2">
                 {citizens.map((c, i) => (
                   <li
-                    key={c.user_id}
+                    key={c.rank}
                     className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.02] p-3"
                   >
                     <div
@@ -226,12 +226,13 @@ function LeaderboardPage() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium text-white">
-                        Citizen · {c.user_id.slice(0, 8)}
+                        {c.citizen_label}
                       </p>
                       <p className="text-[10px] uppercase tracking-widest text-slate-500">
                         {c.reports_count} reports · {c.upvotes_received} upvotes
                       </p>
                     </div>
+
                     <span className="shrink-0 rounded-full border border-cyan-400/30 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-semibold text-cyan-200">
                       {c.reputation} rep
                     </span>
