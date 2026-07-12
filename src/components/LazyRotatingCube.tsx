@@ -24,13 +24,16 @@ export function LazyRotatingCube() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const idleId = "requestIdleCallback" in window
-      ? window.requestIdleCallback(prefetchRotatingCube, { timeout: 2000 })
-      : window.setTimeout(prefetchRotatingCube, 500);
+      ? (window as typeof window & { requestIdleCallback: typeof requestIdleCallback }).requestIdleCallback(
+          prefetchRotatingCube,
+          { timeout: 2000 },
+        )
+      : setTimeout(prefetchRotatingCube, 500);
     return () => {
       if (typeof idleId === "number" && "cancelIdleCallback" in window) {
-        window.cancelIdleCallback(idleId);
+        (window as typeof window & { cancelIdleCallback: typeof cancelIdleCallback }).cancelIdleCallback(idleId);
       } else {
-        window.clearTimeout(idleId);
+        clearTimeout(idleId);
       }
     };
   }, []);
