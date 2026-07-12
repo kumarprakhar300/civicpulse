@@ -1,9 +1,10 @@
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { BarChart3, MapPin, Shield, Sparkles, Trophy, Zap } from "lucide-react";
 
-interface RotatingCubeProps {
+export interface RotatingCubeProps {
   active: boolean;
 }
+
 
 export function RotatingCube({ active }: RotatingCubeProps) {
   const faces = [

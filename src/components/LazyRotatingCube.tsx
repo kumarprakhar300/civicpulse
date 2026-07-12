@@ -1,7 +1,7 @@
-import { Suspense, lazy, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
 import { CubePlaceholder } from "./CubePlaceholder";
-
-const RotatingCube = lazy(() => import("./RotatingCube").then((m) => ({ default: m.RotatingCube })));
+import type { RotatingCubeProps } from "./RotatingCube";
 
 let prefetched = false;
 
@@ -9,9 +9,9 @@ function prefetchRotatingCube() {
   if (prefetched) return;
   prefetched = true;
   // Pre-warm the chunk without rendering it. This fires the same dynamic
-  // import used by React.lazy so the module is already in cache when visible.
+  // import used below so the module is already in cache when visible.
   import("./RotatingCube").catch(() => {
-    // If prefetch fails (e.g. network), React.lazy will retry on visibility.
+    // If prefetch fails (e.g. network), the visible import will retry.
     prefetched = false;
   });
 }
@@ -20,6 +20,11 @@ export function LazyRotatingCube() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   const [active, setActive] = useState(false);
+  const [CubeComponent, setCubeComponent] = useState<React.ComponentType<RotatingCubeProps> | null>(null);
+  const [loaded, setLoaded] = useState(false);
+  const [showPlaceholder, setShowPlaceholder] = useState(true);
+  const importingRef = useRef(false);
+
 
   // Idle prefetch: load the chunk when the browser has spare time.
   useEffect(() => {
@@ -72,18 +77,60 @@ export function LazyRotatingCube() {
     };
   }, []);
 
+  // Load the heavy component as soon as the container becomes visible.
+  useEffect(() => {
+    if (!visible || CubeComponent || importingRef.current) return;
+    importingRef.current = true;
+    import("./RotatingCube")
+      .then((m) => {
+        setCubeComponent(() => m.RotatingCube);
+      })
+      .catch(() => {
+        importingRef.current = false;
+      });
+  }, [visible, CubeComponent]);
+
+  // Start the fade-in only after the component has been mounted in the DOM
+  // so the opacity transition is visible.
+  useEffect(() => {
+    if (!CubeComponent) return;
+    const timer = setTimeout(() => setLoaded(true), 50);
+    return () => clearTimeout(timer);
+  }, [CubeComponent]);
+
+  // Unmount the placeholder once the fade-out finishes so it stops rendering.
+  useEffect(() => {
+    if (!loaded) return;
+    const timer = setTimeout(() => setShowPlaceholder(false), 550);
+    return () => clearTimeout(timer);
+  }, [loaded]);
+
   return (
     <div
       ref={containerRef}
       className="relative mx-auto h-[440px] w-full"
       aria-label="3D issue cube showcase"
     >
-      {visible ? (
-        <Suspense fallback={<CubePlaceholder />}>
-          <RotatingCube active={active} />
-        </Suspense>
-      ) : (
-        <CubePlaceholder />
+      {showPlaceholder && (
+        <div
+          className={cn(
+            "absolute inset-0 transition-opacity duration-500 ease-out",
+            loaded ? "pointer-events-none opacity-0" : "opacity-100"
+          )}
+          aria-hidden={loaded}
+        >
+          <CubePlaceholder />
+        </div>
+      )}
+      {CubeComponent && (
+        <div
+          className={cn(
+            "absolute inset-0 transition-opacity duration-500 ease-out",
+            loaded ? "opacity-100" : "opacity-0"
+          )}
+        >
+          <CubeComponent active={active} />
+        </div>
       )}
     </div>
   );
