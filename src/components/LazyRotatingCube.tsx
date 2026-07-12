@@ -22,7 +22,9 @@ export function LazyRotatingCube() {
   const [active, setActive] = useState(false);
   const [CubeComponent, setCubeComponent] = useState<React.ComponentType<RotatingCubeProps> | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [showPlaceholder, setShowPlaceholder] = useState(true);
   const importingRef = useRef(false);
+
 
   // Idle prefetch: load the chunk when the browser has spare time.
   useEffect(() => {
