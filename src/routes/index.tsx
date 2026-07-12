@@ -215,7 +215,7 @@ function LandingPage() {
             A spinning window into the issues your city faces every day.
           </p>
         </div>
-        <RotatingCube />
+        <LazyRotatingCube />
       </section>
 
       {/* 3D How-it-works pipeline */}
