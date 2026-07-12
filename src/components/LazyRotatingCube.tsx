@@ -126,18 +126,20 @@ export function LazyRotatingCube() {
       {showPlaceholder && (
         <div
           className={cn(
-            "absolute inset-0 transition-opacity duration-500 ease-out",
+            "absolute inset-0",
+            !reducedMotion && "transition-opacity duration-500 ease-out",
             loaded ? "pointer-events-none opacity-0" : "opacity-100"
           )}
           aria-hidden={loaded}
         >
-          <CubePlaceholder />
+          <CubePlaceholder reducedMotion={reducedMotion} />
         </div>
       )}
       {CubeComponent && (
         <div
           className={cn(
-            "absolute inset-0 transition-opacity duration-500 ease-out",
+            "absolute inset-0",
+            !reducedMotion && "transition-opacity duration-500 ease-out",
             loaded ? "opacity-100" : "opacity-0"
           )}
         >
