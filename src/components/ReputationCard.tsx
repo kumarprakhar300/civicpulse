@@ -23,7 +23,7 @@ export function ReputationCard() {
       const { data } = await supabase.auth.getUser();
       if (!data.user) return setLoading(false);
       try {
-        const s = await statsFn({ data: { userId: data.user.id } });
+        const s = await statsFn({ data: {} });
         setStats(s as Stats);
       } finally {
         setLoading(false);
