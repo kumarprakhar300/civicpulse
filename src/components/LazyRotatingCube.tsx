@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { CubePlaceholder } from "./CubePlaceholder";
 import type { RotatingCubeProps } from "./RotatingCube";
 
