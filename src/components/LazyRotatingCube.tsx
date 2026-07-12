@@ -96,20 +96,30 @@ export function LazyRotatingCube() {
     return () => clearTimeout(timer);
   }, [CubeComponent]);
 
+  // Unmount the placeholder once the fade-out finishes so it stops rendering.
+  useEffect(() => {
+    if (!loaded) return;
+    const timer = setTimeout(() => setShowPlaceholder(false), 550);
+    return () => clearTimeout(timer);
+  }, [loaded]);
+
   return (
     <div
       ref={containerRef}
       className="relative mx-auto h-[440px] w-full"
       aria-label="3D issue cube showcase"
     >
-      <div
-        className={cn(
-          "absolute inset-0 transition-opacity duration-500 ease-out",
-          loaded ? "pointer-events-none opacity-0" : "opacity-100"
-        )}
-      >
-        <CubePlaceholder />
-      </div>
+      {showPlaceholder && (
+        <div
+          className={cn(
+            "absolute inset-0 transition-opacity duration-500 ease-out",
+            loaded ? "pointer-events-none opacity-0" : "opacity-100"
+          )}
+          aria-hidden={loaded}
+        >
+          <CubePlaceholder />
+        </div>
+      )}
       {CubeComponent && (
         <div
           className={cn(
