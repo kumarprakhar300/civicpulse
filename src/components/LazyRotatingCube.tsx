@@ -93,12 +93,17 @@ export function LazyRotatingCube() {
   }, [visible, CubeComponent]);
 
   // Start the fade-in only after the component has been mounted in the DOM
-  // so the opacity transition is visible.
+  // so the opacity transition is visible. Skip the fade entirely for users
+  // who prefer reduced motion.
   useEffect(() => {
     if (!CubeComponent) return;
+    if (reducedMotion) {
+      setLoaded(true);
+      return;
+    }
     const timer = setTimeout(() => setLoaded(true), 50);
     return () => clearTimeout(timer);
-  }, [CubeComponent]);
+  }, [CubeComponent, reducedMotion]);
 
   // Unmount the placeholder once the fade-out finishes so it stops rendering.
   useEffect(() => {
