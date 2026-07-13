@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
-import { fetchUserStatsForCaller, getUserStats } from "@/lib/civic.functions";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { fetchUserStatsForCaller } from "@/lib/civic.functions";
 
 const STATS = {
   reports_count: 3,
@@ -21,16 +22,34 @@ function mkCaller(isAdmin = false) {
   };
 }
 
-describe("getUserStats server function", () => {
-  it("requires authentication (requireSupabaseAuth middleware attached)", () => {
-    // Structural guarantee: without this middleware, the handler would run
-    // unauthenticated on the published site.
-    const middleware = (getUserStats as any).options?.middleware ?? (getUserStats as any).__middleware;
-    // TanStack exposes the middleware chain via `.options.middleware`.
-    expect(middleware).toBeDefined();
-    expect(middleware).toContain(requireSupabaseAuth);
+describe("getUserStats server function wiring", () => {
+  // In the Vite test env `getUserStats` is the RPC client stub, so runtime
+  // middleware isn't introspectable. Assert the source declares the auth
+  // middleware — without it the deployed endpoint would be public.
+  const source = readFileSync(
+    resolve(__dirname, "../civic.functions.ts"),
+    "utf8",
+  );
+
+  it("declares requireSupabaseAuth middleware on getUserStats", () => {
+    const match = source.match(
+      /export const getUserStats[\s\S]*?\.handler\(/,
+    );
+    expect(match, "getUserStats definition not found").toBeTruthy();
+    expect(match![0]).toContain(".middleware([requireSupabaseAuth])");
+  });
+
+  it("derives caller identity from auth context, not from client input", () => {
+    const match = source.match(
+      /export const getUserStats[\s\S]*?\.handler\([\s\S]*?\}\);\n/,
+    );
+    expect(match).toBeTruthy();
+    // Handler must pass context.userId as callerId — never trust data.userId
+    // as the caller.
+    expect(match![0]).toMatch(/callerId:\s*context\.userId/);
   });
 });
+
 
 describe("fetchUserStatsForCaller authorization", () => {
   it("returns caller's own stats without a role check", async () => {
