@@ -48,33 +48,52 @@ export const getTopCitizens = createServerFn({ method: "GET" }).handler(async ()
   }));
 });
 
+export type UserStats = {
+  reports_count: number;
+  resolved_count: number;
+  upvotes_received: number;
+  comments_count: number;
+};
+
+// Extracted so it can be integration-tested without going through the
+// createServerFn RPC wrapper. Authorization + data fetching lives here;
+// the server fn is a thin binding over auth-middleware context.
+export async function fetchUserStatsForCaller(opts: {
+  callerId: string;
+  requestedId?: string;
+  callerSupabase: { rpc: (fn: string, args: any) => Promise<{ data: any; error: any }> };
+  adminSupabase: { rpc: (fn: string, args: any) => Promise<{ data: any; error: any }> };
+}): Promise<UserStats> {
+  const requestedId = opts.requestedId ?? opts.callerId;
+  if (requestedId !== opts.callerId) {
+    const { data: isAdmin } = await opts.callerSupabase.rpc("has_role", {
+      _user_id: opts.callerId,
+      _role: "admin",
+    });
+    if (!isAdmin) throw new Error("Forbidden");
+  }
+  const { data: rows, error } = await opts.adminSupabase.rpc("user_stats", { _user_id: requestedId });
+  if (error) throw new Error(error.message);
+  return ((rows ?? [])[0] ?? {
+    reports_count: 0,
+    resolved_count: 0,
+    upvotes_received: 0,
+    comments_count: 0,
+  }) as UserStats;
+}
+
 // User stats require authentication. A user may only fetch their own stats;
 // admins may fetch any user's stats.
 export const getUserStats = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: { userId?: string } | undefined) => d ?? {})
   .handler(async ({ data, context }) => {
-    const requestedId = data.userId ?? context.userId;
-    if (requestedId !== context.userId) {
-      const { data: isAdmin } = await context.supabase.rpc("has_role", {
-        _user_id: context.userId,
-        _role: "admin",
-      });
-      if (!isAdmin) throw new Error("Forbidden");
-    }
     const sb = await admin();
-    const { data: rows, error } = await sb.rpc("user_stats" as any, { _user_id: requestedId });
-    if (error) throw new Error(error.message);
-    const s = (rows ?? [])[0] ?? {
-      reports_count: 0,
-      resolved_count: 0,
-      upvotes_received: 0,
-      comments_count: 0,
-    };
-    return s as {
-      reports_count: number;
-      resolved_count: number;
-      upvotes_received: number;
-      comments_count: number;
-    };
+    return fetchUserStatsForCaller({
+      callerId: context.userId,
+      requestedId: data.userId,
+      callerSupabase: context.supabase as any,
+      adminSupabase: sb as any,
+    });
   });
+
