@@ -12,6 +12,9 @@ import {
   CheckCircle2,
   Radio,
   ShieldAlert,
+  AlertTriangle,
+  Inbox,
+  RefreshCw,
 } from "lucide-react";
 
 export const Route = createFileRoute("/leaderboard")({
