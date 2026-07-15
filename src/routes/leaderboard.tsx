@@ -39,13 +39,29 @@ export const Route = createFileRoute("/leaderboard")({
 });
 
 function LeaderboardPage() {
-  const { data: wards = [], isLoading: wardsLoading } = useQuery({
+  const {
+    data: wards = [],
+    isLoading: wardsLoading,
+    isError: wardsError,
+    error: wardsErrorObj,
+    refetch: refetchWards,
+    isFetching: wardsFetching,
+  } = useQuery({
     queryKey: ["ward-scorecards"],
     queryFn: () => getWardScorecards(),
+    retry: 1,
   });
-  const { data: citizens = [], isLoading: citizensLoading } = useQuery({
+  const {
+    data: citizens = [],
+    isLoading: citizensLoading,
+    isError: citizensError,
+    error: citizensErrorObj,
+    refetch: refetchCitizens,
+    isFetching: citizensFetching,
+  } = useQuery({
     queryKey: ["top-citizens"],
     queryFn: () => getTopCitizens(),
+    retry: 1,
   });
 
   const sortedWards = useMemo(
