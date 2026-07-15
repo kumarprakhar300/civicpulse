@@ -235,8 +235,22 @@ function LeaderboardPage() {
             </div>
             {citizensLoading ? (
               <p className="text-sm text-slate-500">Loading…</p>
+            ) : citizensError ? (
+              <StateMessage
+                tone="error"
+                icon={<AlertTriangle className="h-4 w-4" />}
+                title="Couldn't load top citizens"
+                description={errorMessage(citizensErrorObj) ?? "The leaderboard service is temporarily unavailable. Please try again in a moment."}
+                onRetry={() => refetchCitizens()}
+                retrying={citizensFetching}
+              />
             ) : citizens.length === 0 ? (
-              <p className="text-sm text-slate-500">No contributors yet.</p>
+              <StateMessage
+                tone="empty"
+                icon={<Inbox className="h-4 w-4" />}
+                title="No contributors yet"
+                description="Be the first to file a report and you'll show up here."
+              />
             ) : (
               <ol className="space-y-2">
                 {citizens.map((c, i) => (
