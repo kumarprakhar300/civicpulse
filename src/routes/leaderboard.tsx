@@ -155,8 +155,22 @@ function LeaderboardPage() {
             </div>
             {wardsLoading ? (
               <p className="text-sm text-slate-500">Loading grid…</p>
+            ) : wardsError ? (
+              <StateMessage
+                tone="error"
+                icon={<AlertTriangle className="h-4 w-4" />}
+                title="Couldn't load ward scorecards"
+                description={errorMessage(wardsErrorObj) ?? "The scorecard service is temporarily unavailable. Please try again in a moment."}
+                onRetry={() => refetchWards()}
+                retrying={wardsFetching}
+              />
             ) : sortedWards.length === 0 ? (
-              <p className="text-sm text-slate-500">No reports yet.</p>
+              <StateMessage
+                tone="empty"
+                icon={<Inbox className="h-4 w-4" />}
+                title="No ward data yet"
+                description="Once residents file their first reports, ward-by-ward performance will appear here."
+              />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
