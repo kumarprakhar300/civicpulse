@@ -2,7 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getWardScorecards, getTopCitizens } from "@/lib/civic.functions";
+import { errorMessage } from "@/lib/utils";
 import { PageShell, GlassCard } from "@/components/PageShell";
+import { StateMessage } from "@/components/StateMessage";
 import {
   Trophy,
   TrendingDown,
@@ -14,7 +16,6 @@ import {
   ShieldAlert,
   AlertTriangle,
   Inbox,
-  RefreshCw,
 } from "lucide-react";
 
 export const Route = createFileRoute("/leaderboard")({
