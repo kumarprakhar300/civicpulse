@@ -10,6 +10,9 @@ import { toast } from "sonner";
 import { MapPin, Loader2, Shield, Zap, Radio } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s.next === "string" && s.next.startsWith("/") && !s.next.startsWith("//") ? s.next : "",
+  }),
   head: () => ({
     meta: [
       { title: "Sign in — CivicPulse" },
@@ -22,15 +25,25 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const goNext = () => {
+    if (next) {
+      window.location.href = next;
+    } else {
+      navigate({ to: "/" });
+    }
+  };
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) navigate({ to: "/" });
+      if (data.user) goNext();
     });
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
@@ -42,16 +55,19 @@ function AuthPage() {
       return;
     }
     toast.success("Welcome back!");
-    navigate({ to: "/" });
+    goNext();
   }
 
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+    const emailRedirectTo = next
+      ? `${window.location.origin}${next}`
+      : window.location.origin;
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: window.location.origin },
+      options: { emailRedirectTo },
     });
     setLoading(false);
     if (error) {
@@ -59,21 +75,22 @@ function AuthPage() {
       return;
     }
     toast.success("Account created! Check your email if confirmation is required.");
-    navigate({ to: "/" });
+    goNext();
   }
 
   async function handleGoogle() {
     setLoading(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
+    const redirect_uri = next
+      ? `${window.location.origin}${next}`
+      : window.location.origin;
+    const result = await lovable.auth.signInWithOAuth("google", { redirect_uri });
     if (result.error) {
       setLoading(false);
       toast.error("Google sign-in failed");
       return;
     }
     if (result.redirected) return;
-    navigate({ to: "/" });
+    goNext();
   }
 
   return (
