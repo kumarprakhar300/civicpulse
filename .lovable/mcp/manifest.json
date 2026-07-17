@@ -147,6 +147,60 @@
           }
         },
         "outputSchema": null
+      },
+      {
+        "name": "list_unread_notifications",
+        "title": "List unread notifications",
+        "description": "List in-app notifications for the signed-in user that have not been marked as read.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "limit": {
+              "description": "Max notifications (default 20).",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "mark_notification_read",
+        "title": "Mark notification(s) as read",
+        "description": "Mark one or more notifications as read for the signed-in user. Pass an array of notification IDs, or set all=true to mark every unread notification as read.",
+        "annotations": {
+          "readOnlyHint": false,
+          "idempotentHint": true,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "ids": {
+              "description": "Notification UUIDs to mark read.",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              }
+            },
+            "all": {
+              "description": "If true, mark all unread notifications as read.",
+              "type": "boolean"
+            }
+          }
+        },
+        "outputSchema": null
       }
     ]
   }
