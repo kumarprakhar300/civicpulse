@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 // --- Citizen actions ---
@@ -95,6 +96,55 @@ export const markAllNotifRead = createServerFn({ method: "POST" })
       .update({ read_at: new Date().toISOString() })
       .eq("user_id", context.userId)
       .is("read_at", null);
+    if (error) throw error;
+    return { ok: true };
+  });
+
+// Paginated notifications feed (matches MCP list_notifications pagination shape).
+export const listMyNotificationsPaged = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { limit?: number; offset?: number; cursor?: string; unreadOnly?: boolean }) =>
+    z
+      .object({
+        limit: z.number().int().min(1).max(50).optional(),
+        offset: z.number().int().min(0).max(10000).optional(),
+        cursor: z.string().datetime().optional(),
+        unreadOnly: z.boolean().optional(),
+      })
+      .parse(d ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    const pageSize = data.limit ?? 20;
+    const skip = data.offset ?? 0;
+    let q = context.supabase
+      .from("notifications")
+      .select("id, kind, message, report_id, created_at, read_at", { count: "exact" })
+      .eq("user_id", context.userId)
+      .order("created_at", { ascending: false });
+    if (data.unreadOnly) q = q.is("read_at", null);
+    if (data.cursor) q = q.lt("created_at", data.cursor);
+    q = q.range(skip, skip + pageSize - 1);
+    const { data: rows, error, count } = await q;
+    if (error) throw error;
+    const list = rows ?? [];
+    const total = count ?? 0;
+    const nextOffset = data.cursor ? null : skip + list.length < total ? skip + list.length : null;
+    const nextCursor = list.length === pageSize ? list[list.length - 1]?.created_at ?? null : null;
+    return {
+      notifications: list,
+      page: { limit: pageSize, offset: skip, total, next_offset: nextOffset, next_cursor: nextCursor },
+    };
+  });
+
+export const markNotifRead = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase
+      .from("notifications")
+      .update({ read_at: new Date().toISOString() })
+      .eq("id", data.id)
+      .eq("user_id", context.userId);
     if (error) throw error;
     return { ok: true };
   });

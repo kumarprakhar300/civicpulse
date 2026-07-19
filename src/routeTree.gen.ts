@@ -21,6 +21,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ReportIdRouteImport } from './routes/report.$id'
 import { Route as AuthenticatedReportRouteImport } from './routes/_authenticated/report'
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedMyReportsRouteImport } from './routes/_authenticated/my-reports'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
@@ -88,6 +89,12 @@ const AuthenticatedReportRoute = AuthenticatedReportRouteImport.update({
   path: '/report',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedNotificationsRoute =
+  AuthenticatedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMyReportsRoute = AuthenticatedMyReportsRouteImport.update({
   id: '/my-reports',
   path: '/my-reports',
@@ -142,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/my-reports': typeof AuthenticatedMyReportsRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/report': typeof AuthenticatedReportRoute
   '/report/$id': typeof ReportIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -162,6 +170,7 @@ export interface FileRoutesByTo {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/my-reports': typeof AuthenticatedMyReportsRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/report': typeof AuthenticatedReportRoute
   '/report/$id': typeof ReportIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -184,6 +193,7 @@ export interface FileRoutesById {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/my-reports': typeof AuthenticatedMyReportsRoute
+  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/report': typeof AuthenticatedReportRoute
   '/report/$id': typeof ReportIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -206,6 +216,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/admin'
     | '/my-reports'
+    | '/notifications'
     | '/report'
     | '/report/$id'
     | '/.lovable/oauth/consent'
@@ -226,6 +237,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/admin'
     | '/my-reports'
+    | '/notifications'
     | '/report'
     | '/report/$id'
     | '/.lovable/oauth/consent'
@@ -247,6 +259,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/admin'
     | '/_authenticated/my-reports'
+    | '/_authenticated/notifications'
     | '/_authenticated/report'
     | '/report/$id'
     | '/.lovable/oauth/consent'
@@ -359,6 +372,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReportRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/my-reports': {
       id: '/_authenticated/my-reports'
       path: '/my-reports'
@@ -414,12 +434,14 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedMyReportsRoute: typeof AuthenticatedMyReportsRoute
+  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedReportRoute: typeof AuthenticatedReportRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedMyReportsRoute: AuthenticatedMyReportsRoute,
+  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedReportRoute: AuthenticatedReportRoute,
 }
 
