@@ -108,10 +108,12 @@ function NotificationsPage() {
           ) : query.isError ? (
             <StateMessage
               tone="error"
+              icon={<BellOff className="h-8 w-8" />}
               title="Could not load notifications"
               description={(query.error as Error)?.message ?? "Please try again."}
-              onRetry={() => query.refetch()}
+              onRetry={() => { query.refetch(); }}
             />
+
           ) : items.length === 0 ? (
             <StateMessage
               tone="empty"
