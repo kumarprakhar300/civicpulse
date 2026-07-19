@@ -12,25 +12,44 @@ function supabaseForUser(ctx: ToolContext) {
 export default defineTool({
   name: "list_notifications",
   title: "List my notifications",
-  description: "List in-app notifications for the signed-in user (status changes, admin updates).",
+  description:
+    "List in-app notifications for the signed-in user (status changes, admin updates). Supports pagination via `limit` and `offset`, or `cursor` (ISO timestamp of the last item's created_at) to fetch older pages.",
   inputSchema: {
-    limit: z.number().int().min(1).max(50).optional().describe("Max notifications (default 20)."),
+    limit: z.number().int().min(1).max(50).optional().describe("Max notifications per page (default 20)."),
+    offset: z.number().int().min(0).max(10000).optional().describe("Rows to skip from the start (default 0)."),
+    cursor: z
+      .string()
+      .datetime()
+      .optional()
+      .describe("ISO timestamp; returns notifications older than this (use last item's created_at)."),
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
-  handler: async ({ limit }, ctx) => {
+  handler: async ({ limit, offset, cursor }, ctx) => {
     if (!ctx.isAuthenticated()) {
       return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
     }
-    const { data, error } = await supabaseForUser(ctx)
+    const pageSize = limit ?? 20;
+    const skip = offset ?? 0;
+    const sb = supabaseForUser(ctx);
+    let q = sb
       .from("notifications")
-      .select("id, kind, message, report_id, created_at, read_at")
+      .select("id, kind, message, report_id, created_at, read_at", { count: "exact" })
       .eq("user_id", ctx.getUserId())
-      .order("created_at", { ascending: false })
-      .limit(limit ?? 20);
+      .order("created_at", { ascending: false });
+    if (cursor) q = q.lt("created_at", cursor);
+    q = q.range(skip, skip + pageSize - 1);
+    const { data, error, count } = await q;
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
+    const rows = data ?? [];
+    const total = count ?? 0;
+    const nextOffset = cursor ? null : skip + rows.length < total ? skip + rows.length : null;
+    const nextCursor = rows.length === pageSize ? rows[rows.length - 1]?.created_at ?? null : null;
     return {
-      content: [{ type: "text", text: JSON.stringify(data ?? [], null, 2) }],
-      structuredContent: { notifications: data ?? [] },
+      content: [{ type: "text", text: JSON.stringify(rows, null, 2) }],
+      structuredContent: {
+        notifications: rows,
+        page: { limit: pageSize, offset: skip, total, next_offset: nextOffset, next_cursor: nextCursor },
+      },
     };
   },
 });
