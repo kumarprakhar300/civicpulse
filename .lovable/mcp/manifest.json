@@ -128,7 +128,7 @@
       {
         "name": "list_notifications",
         "title": "List my notifications",
-        "description": "List in-app notifications for the signed-in user (status changes, admin updates).",
+        "description": "List in-app notifications for the signed-in user (status changes, admin updates). Supports pagination via `limit` and `offset`, or `cursor` (ISO timestamp of the last item's created_at) to fetch older pages.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -139,10 +139,22 @@
           "type": "object",
           "properties": {
             "limit": {
-              "description": "Max notifications (default 20).",
+              "description": "Max notifications per page (default 20).",
               "type": "integer",
               "minimum": 1,
               "maximum": 50
+            },
+            "offset": {
+              "description": "Rows to skip from the start (default 0).",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10000
+            },
+            "cursor": {
+              "description": "ISO timestamp; returns notifications older than this (use last item's created_at).",
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
             }
           }
         },
@@ -151,7 +163,7 @@
       {
         "name": "list_unread_notifications",
         "title": "List unread notifications",
-        "description": "List in-app notifications for the signed-in user that have not been marked as read.",
+        "description": "List in-app notifications for the signed-in user that have not been marked as read. Supports pagination via `limit` and `offset`, or `cursor` (ISO timestamp of the last item's created_at) to fetch older pages.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -162,10 +174,22 @@
           "type": "object",
           "properties": {
             "limit": {
-              "description": "Max notifications (default 20).",
+              "description": "Max notifications per page (default 20).",
               "type": "integer",
               "minimum": 1,
               "maximum": 50
+            },
+            "offset": {
+              "description": "Rows to skip from the start (default 0).",
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 10000
+            },
+            "cursor": {
+              "description": "ISO timestamp; returns unread notifications older than this (use last item's created_at).",
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
             }
           }
         },
