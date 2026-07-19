@@ -64,6 +64,7 @@ export function PageShell({
             <ShellNavLink to="/about" label="About" />
             {email && <ShellNavLink to="/report" label="Report" />}
             {email && <ShellNavLink to="/my-reports" label="My reports" />}
+            {email && <ShellNavLink to="/notifications" label="Alerts" />}
           </nav>
           <div className="flex items-center gap-2">
             {email ? (
