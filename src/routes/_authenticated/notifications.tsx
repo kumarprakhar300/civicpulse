@@ -32,10 +32,25 @@ function NotificationsPage() {
   const markOneFn = useServerFn(markNotifRead);
   const markAllFn = useServerFn(markAllNotifRead);
 
+  const { prefs, hydrated } = useNotificationPrefs();
   const [unreadOnly, setUnreadOnly] = useState(false);
+  const [unreadTouched, setUnreadTouched] = useState(false);
   const [kind, setKind] = useState<string>("");
   const [from, setFrom] = useState<string>("");
   const [to, setTo] = useState<string>("");
+
+  // Apply user's default "unread only" pref on first hydration
+  useEffect(() => {
+    if (hydrated && !unreadTouched) setUnreadOnly(prefs.defaultUnreadOnly);
+  }, [hydrated, prefs.defaultUnreadOnly, unreadTouched]);
+
+  const enabledKindValues = useMemo(
+    () =>
+      NOTIF_KINDS.filter((k) => prefs.enabledKinds[k.value]).map((k) => k.value),
+    [prefs.enabledKinds],
+  );
+  const allKindsEnabled = enabledKindValues.length === NOTIF_KINDS.length;
+  const noKindsEnabled = enabledKindValues.length === 0;
 
   const fromIso = from ? new Date(from).toISOString() : undefined;
   const toIso = to ? new Date(to + "T23:59:59").toISOString() : undefined;
