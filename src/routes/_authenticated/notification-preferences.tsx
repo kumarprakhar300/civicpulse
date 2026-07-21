@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { BellCog, Save } from "lucide-react";
+import { Settings2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageShell, GlassCard } from "@/components/PageShell";
 import {
