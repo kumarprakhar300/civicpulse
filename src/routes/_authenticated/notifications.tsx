@@ -99,7 +99,10 @@ function NotificationsPage() {
     return () => io.disconnect();
   }, [query.hasNextPage, query.isFetchingNextPage, query.fetchNextPage]);
 
-  const items = query.data?.pages.flatMap((p) => p.notifications) ?? [];
+  const rawItems = query.data?.pages.flatMap((p) => p.notifications) ?? [];
+  const items = allKindsEnabled
+    ? rawItems
+    : rawItems.filter((n: any) => !n.kind || enabledKindValues.includes(n.kind));
   const total = query.data?.pages[0]?.page?.total ?? 0;
 
   return (
@@ -112,13 +115,22 @@ function NotificationsPage() {
             </h1>
             <p className="text-sm text-slate-400">
               {total} total {unreadOnly ? "unread" : ""} update{total === 1 ? "" : "s"}
+              {!allKindsEnabled && !noKindsEnabled && " · some kinds hidden by your preferences"}
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <Link to="/notification-preferences">
+              <Button variant="outline" size="sm">
+                <Settings2 className="mr-1 h-4 w-4" /> Preferences
+              </Button>
+            </Link>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setUnreadOnly((v) => !v)}
+              onClick={() => {
+                setUnreadTouched(true);
+                setUnreadOnly((v) => !v);
+              }}
             >
               {unreadOnly ? "Show all" : "Unread only"}
             </Button>
