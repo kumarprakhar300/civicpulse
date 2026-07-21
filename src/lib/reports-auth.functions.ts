@@ -103,15 +103,27 @@ export const markAllNotifRead = createServerFn({ method: "POST" })
 // Paginated notifications feed (matches MCP list_notifications pagination shape).
 export const listMyNotificationsPaged = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: { limit?: number; offset?: number; cursor?: string; unreadOnly?: boolean }) =>
-    z
-      .object({
-        limit: z.number().int().min(1).max(50).optional(),
-        offset: z.number().int().min(0).max(10000).optional(),
-        cursor: z.string().datetime().optional(),
-        unreadOnly: z.boolean().optional(),
-      })
-      .parse(d ?? {}),
+  .inputValidator(
+    (d: {
+      limit?: number;
+      offset?: number;
+      cursor?: string;
+      unreadOnly?: boolean;
+      kind?: string;
+      from?: string;
+      to?: string;
+    }) =>
+      z
+        .object({
+          limit: z.number().int().min(1).max(50).optional(),
+          offset: z.number().int().min(0).max(10000).optional(),
+          cursor: z.string().datetime().optional(),
+          unreadOnly: z.boolean().optional(),
+          kind: z.string().min(1).max(50).optional(),
+          from: z.string().datetime().optional(),
+          to: z.string().datetime().optional(),
+        })
+        .parse(d ?? {}),
   )
   .handler(async ({ data, context }) => {
     const pageSize = data.limit ?? 20;
@@ -122,6 +134,9 @@ export const listMyNotificationsPaged = createServerFn({ method: "GET" })
       .eq("user_id", context.userId)
       .order("created_at", { ascending: false });
     if (data.unreadOnly) q = q.is("read_at", null);
+    if (data.kind) q = q.eq("kind", data.kind);
+    if (data.from) q = q.gte("created_at", data.from);
+    if (data.to) q = q.lte("created_at", data.to);
     if (data.cursor) q = q.lt("created_at", data.cursor);
     q = q.range(skip, skip + pageSize - 1);
     const { data: rows, error, count } = await q;
@@ -135,6 +150,7 @@ export const listMyNotificationsPaged = createServerFn({ method: "GET" })
       page: { limit: pageSize, offset: skip, total, next_offset: nextOffset, next_cursor: nextCursor },
     };
   });
+
 
 export const markNotifRead = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

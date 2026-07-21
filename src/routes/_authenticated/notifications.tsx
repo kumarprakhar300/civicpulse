@@ -32,14 +32,30 @@ function NotificationsPage() {
   const markAllFn = useServerFn(markAllNotifRead);
 
   const [unreadOnly, setUnreadOnly] = useState(false);
+  const [kind, setKind] = useState<string>("");
+  const [from, setFrom] = useState<string>("");
+  const [to, setTo] = useState<string>("");
+
+  const fromIso = from ? new Date(from).toISOString() : undefined;
+  const toIso = to ? new Date(to + "T23:59:59").toISOString() : undefined;
 
   const query = useInfiniteQuery({
-    queryKey: ["notifications", { unreadOnly }],
+    queryKey: ["notifications", { unreadOnly, kind, from: fromIso, to: toIso }],
     initialPageParam: undefined as string | undefined,
     queryFn: ({ pageParam }) =>
-      listFn({ data: { limit: PAGE_SIZE, cursor: pageParam, unreadOnly } }),
+      listFn({
+        data: {
+          limit: PAGE_SIZE,
+          cursor: pageParam,
+          unreadOnly,
+          kind: kind || undefined,
+          from: fromIso,
+          to: toIso,
+        },
+      }),
     getNextPageParam: (last) => last?.page?.next_cursor ?? undefined,
   });
+
 
   const markOne = useMutation({
     mutationFn: (id: string) => markOneFn({ data: { id } }),
@@ -99,6 +115,58 @@ function NotificationsPage() {
             </Button>
           </div>
         </div>
+
+        <GlassCard className="p-4">
+          <div className="flex flex-wrap items-end gap-3">
+            <div className="flex flex-col">
+              <label className="mb-1 text-xs text-slate-400">Kind</label>
+              <select
+                value={kind}
+                onChange={(e) => setKind(e.target.value)}
+                className="h-9 rounded-md border border-white/10 bg-slate-900/60 px-2 text-sm text-slate-100"
+              >
+                <option value="">All kinds</option>
+                <option value="status_change">Status change</option>
+                <option value="admin_update">Admin update</option>
+                <option value="system">System</option>
+                <option value="comment">Comment</option>
+              </select>
+            </div>
+            <div className="flex flex-col">
+              <label className="mb-1 text-xs text-slate-400">From</label>
+              <input
+                type="date"
+                value={from}
+                onChange={(e) => setFrom(e.target.value)}
+                className="h-9 rounded-md border border-white/10 bg-slate-900/60 px-2 text-sm text-slate-100"
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="mb-1 text-xs text-slate-400">To</label>
+              <input
+                type="date"
+                value={to}
+                onChange={(e) => setTo(e.target.value)}
+                className="h-9 rounded-md border border-white/10 bg-slate-900/60 px-2 text-sm text-slate-100"
+              />
+            </div>
+            {(kind || from || to) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setKind("");
+                  setFrom("");
+                  setTo("");
+                }}
+              >
+                Clear
+              </Button>
+            )}
+          </div>
+        </GlassCard>
+
+
 
         <GlassCard>
           {query.isLoading ? (
