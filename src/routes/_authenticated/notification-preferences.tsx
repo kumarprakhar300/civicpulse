@@ -34,7 +34,7 @@ function NotificationPreferencesPage() {
         <div className="flex items-start justify-between gap-3">
           <div>
             <h1 className="flex items-center gap-2 text-2xl font-semibold text-white">
-              <BellCog className="h-6 w-6" /> Notification preferences
+              <Settings2 className="h-6 w-6" /> Notification preferences
             </h1>
             <p className="text-sm text-slate-400">
               Control which alerts show up on your Notifications page.
