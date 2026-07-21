@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useRef, useState } from "react";
-import { Bell, BellOff, Check, Loader2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Bell, BellOff, Check, Loader2, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageShell, GlassCard } from "@/components/PageShell";
@@ -12,6 +12,7 @@ import {
   markNotifRead,
   markAllNotifRead,
 } from "@/lib/reports-auth.functions";
+import { NOTIF_KINDS, useNotificationPrefs } from "@/lib/notification-prefs";
 
 export const Route = createFileRoute("/_authenticated/notifications")({
   head: () => ({
