@@ -32,14 +32,30 @@ function NotificationsPage() {
   const markAllFn = useServerFn(markAllNotifRead);
 
   const [unreadOnly, setUnreadOnly] = useState(false);
+  const [kind, setKind] = useState<string>("");
+  const [from, setFrom] = useState<string>("");
+  const [to, setTo] = useState<string>("");
+
+  const fromIso = from ? new Date(from).toISOString() : undefined;
+  const toIso = to ? new Date(to + "T23:59:59").toISOString() : undefined;
 
   const query = useInfiniteQuery({
-    queryKey: ["notifications", { unreadOnly }],
+    queryKey: ["notifications", { unreadOnly, kind, from: fromIso, to: toIso }],
     initialPageParam: undefined as string | undefined,
     queryFn: ({ pageParam }) =>
-      listFn({ data: { limit: PAGE_SIZE, cursor: pageParam, unreadOnly } }),
+      listFn({
+        data: {
+          limit: PAGE_SIZE,
+          cursor: pageParam,
+          unreadOnly,
+          kind: kind || undefined,
+          from: fromIso,
+          to: toIso,
+        },
+      }),
     getNextPageParam: (last) => last?.page?.next_cursor ?? undefined,
   });
+
 
   const markOne = useMutation({
     mutationFn: (id: string) => markOneFn({ data: { id } }),
