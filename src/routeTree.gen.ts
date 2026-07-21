@@ -22,6 +22,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ReportIdRouteImport } from './routes/report.$id'
 import { Route as AuthenticatedReportRouteImport } from './routes/_authenticated/report'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
+import { Route as AuthenticatedNotificationPreferencesRouteImport } from './routes/_authenticated/notification-preferences'
 import { Route as AuthenticatedMyReportsRouteImport } from './routes/_authenticated/my-reports'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
@@ -95,6 +96,12 @@ const AuthenticatedNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedNotificationPreferencesRoute =
+  AuthenticatedNotificationPreferencesRouteImport.update({
+    id: '/notification-preferences',
+    path: '/notification-preferences',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMyReportsRoute = AuthenticatedMyReportsRouteImport.update({
   id: '/my-reports',
   path: '/my-reports',
@@ -149,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/my-reports': typeof AuthenticatedMyReportsRoute
+  '/notification-preferences': typeof AuthenticatedNotificationPreferencesRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/report': typeof AuthenticatedReportRoute
   '/report/$id': typeof ReportIdRoute
@@ -170,6 +178,7 @@ export interface FileRoutesByTo {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/my-reports': typeof AuthenticatedMyReportsRoute
+  '/notification-preferences': typeof AuthenticatedNotificationPreferencesRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/report': typeof AuthenticatedReportRoute
   '/report/$id': typeof ReportIdRoute
@@ -193,6 +202,7 @@ export interface FileRoutesById {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/my-reports': typeof AuthenticatedMyReportsRoute
+  '/_authenticated/notification-preferences': typeof AuthenticatedNotificationPreferencesRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/report': typeof AuthenticatedReportRoute
   '/report/$id': typeof ReportIdRoute
@@ -216,6 +226,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/admin'
     | '/my-reports'
+    | '/notification-preferences'
     | '/notifications'
     | '/report'
     | '/report/$id'
@@ -237,6 +248,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/admin'
     | '/my-reports'
+    | '/notification-preferences'
     | '/notifications'
     | '/report'
     | '/report/$id'
@@ -259,6 +271,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/admin'
     | '/_authenticated/my-reports'
+    | '/_authenticated/notification-preferences'
     | '/_authenticated/notifications'
     | '/_authenticated/report'
     | '/report/$id'
@@ -379,6 +392,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/notification-preferences': {
+      id: '/_authenticated/notification-preferences'
+      path: '/notification-preferences'
+      fullPath: '/notification-preferences'
+      preLoaderRoute: typeof AuthenticatedNotificationPreferencesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/my-reports': {
       id: '/_authenticated/my-reports'
       path: '/my-reports'
@@ -434,6 +454,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedMyReportsRoute: typeof AuthenticatedMyReportsRoute
+  AuthenticatedNotificationPreferencesRoute: typeof AuthenticatedNotificationPreferencesRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedReportRoute: typeof AuthenticatedReportRoute
 }
@@ -441,6 +462,8 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedMyReportsRoute: AuthenticatedMyReportsRoute,
+  AuthenticatedNotificationPreferencesRoute:
+    AuthenticatedNotificationPreferencesRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedReportRoute: AuthenticatedReportRoute,
 }
