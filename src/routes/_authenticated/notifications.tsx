@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useRef, useState } from "react";
-import { Bell, BellOff, Check, Loader2 } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Bell, BellOff, Check, Loader2, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageShell, GlassCard } from "@/components/PageShell";
@@ -12,6 +12,7 @@ import {
   markNotifRead,
   markAllNotifRead,
 } from "@/lib/reports-auth.functions";
+import { NOTIF_KINDS, useNotificationPrefs } from "@/lib/notification-prefs";
 
 export const Route = createFileRoute("/_authenticated/notifications")({
   head: () => ({
@@ -31,10 +32,25 @@ function NotificationsPage() {
   const markOneFn = useServerFn(markNotifRead);
   const markAllFn = useServerFn(markAllNotifRead);
 
+  const { prefs, hydrated } = useNotificationPrefs();
   const [unreadOnly, setUnreadOnly] = useState(false);
+  const [unreadTouched, setUnreadTouched] = useState(false);
   const [kind, setKind] = useState<string>("");
   const [from, setFrom] = useState<string>("");
   const [to, setTo] = useState<string>("");
+
+  // Apply user's default "unread only" pref on first hydration
+  useEffect(() => {
+    if (hydrated && !unreadTouched) setUnreadOnly(prefs.defaultUnreadOnly);
+  }, [hydrated, prefs.defaultUnreadOnly, unreadTouched]);
+
+  const enabledKindValues = useMemo(
+    () =>
+      NOTIF_KINDS.filter((k) => prefs.enabledKinds[k.value]).map((k) => k.value),
+    [prefs.enabledKinds],
+  );
+  const allKindsEnabled = enabledKindValues.length === NOTIF_KINDS.length;
+  const noKindsEnabled = enabledKindValues.length === 0;
 
   const fromIso = from ? new Date(from).toISOString() : undefined;
   const toIso = to ? new Date(to + "T23:59:59").toISOString() : undefined;
@@ -83,7 +99,10 @@ function NotificationsPage() {
     return () => io.disconnect();
   }, [query.hasNextPage, query.isFetchingNextPage, query.fetchNextPage]);
 
-  const items = query.data?.pages.flatMap((p) => p.notifications) ?? [];
+  const rawItems = query.data?.pages.flatMap((p) => p.notifications) ?? [];
+  const items = allKindsEnabled
+    ? rawItems
+    : rawItems.filter((n: any) => !n.kind || enabledKindValues.includes(n.kind));
   const total = query.data?.pages[0]?.page?.total ?? 0;
 
   return (
@@ -96,13 +115,22 @@ function NotificationsPage() {
             </h1>
             <p className="text-sm text-slate-400">
               {total} total {unreadOnly ? "unread" : ""} update{total === 1 ? "" : "s"}
+              {!allKindsEnabled && !noKindsEnabled && " · some kinds hidden by your preferences"}
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <Link to="/notification-preferences">
+              <Button variant="outline" size="sm">
+                <Settings2 className="mr-1 h-4 w-4" /> Preferences
+              </Button>
+            </Link>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setUnreadOnly((v) => !v)}
+              onClick={() => {
+                setUnreadTouched(true);
+                setUnreadOnly((v) => !v);
+              }}
             >
               {unreadOnly ? "Show all" : "Unread only"}
             </Button>
