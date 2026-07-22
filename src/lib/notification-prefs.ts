@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export const NOTIF_KINDS = [
   { value: "status_change", label: "Status change" },
@@ -47,14 +47,18 @@ export function savePrefs(prefs: NotificationPrefs) {
   window.dispatchEvent(new CustomEvent("civicpulse:notif-prefs-changed"));
 }
 
+export type SaveStatus = "idle" | "saving" | "saved" | "error";
+
 export function useNotificationPrefs() {
-  const [prefs, setPrefs] = useState<NotificationPrefs>(DEFAULT_PREFS);
+  const [prefs, setPrefsState] = useState<NotificationPrefs>(DEFAULT_PREFS);
   const [hydrated, setHydrated] = useState(false);
+  const [status, setStatus] = useState<SaveStatus>("idle");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setPrefs(loadPrefs());
+    setPrefsState(loadPrefs());
     setHydrated(true);
-    const onChange = () => setPrefs(loadPrefs());
+    const onChange = () => setPrefsState(loadPrefs());
     window.addEventListener("civicpulse:notif-prefs-changed", onChange);
     window.addEventListener("storage", onChange);
     return () => {
@@ -63,10 +67,26 @@ export function useNotificationPrefs() {
     };
   }, []);
 
+  const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const update = (next: NotificationPrefs) => {
-    setPrefs(next);
-    savePrefs(next);
+    const prev = prefs;
+    // Optimistic UI: apply immediately
+    setPrefsState(next);
+    setStatus("saving");
+    setError(null);
+    try {
+      savePrefs(next);
+      setStatus("saved");
+      if (savedTimer.current) clearTimeout(savedTimer.current);
+      savedTimer.current = setTimeout(() => setStatus("idle"), 1200);
+    } catch (e) {
+      // Revert on failure (e.g. storage quota / private mode)
+      setPrefsState(prev);
+      setStatus("error");
+      setError(e instanceof Error ? e.message : "Could not save preferences");
+    }
   };
 
-  return { prefs, setPrefs: update, hydrated };
+  return { prefs, setPrefs: update, hydrated, status, error };
 }
