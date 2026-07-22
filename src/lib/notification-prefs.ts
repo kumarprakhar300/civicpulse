@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export const NOTIF_KINDS = [
   { value: "status_change", label: "Status change" },
