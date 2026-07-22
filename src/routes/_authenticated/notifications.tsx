@@ -55,8 +55,17 @@ function NotificationsPage() {
   const fromIso = from ? new Date(from).toISOString() : undefined;
   const toIso = to ? new Date(to + "T23:59:59").toISOString() : undefined;
 
+  const kindsFilter = kind
+    ? undefined
+    : allKindsEnabled
+      ? undefined
+      : enabledKindValues;
+
   const query = useInfiniteQuery({
-    queryKey: ["notifications", { unreadOnly, kind, from: fromIso, to: toIso }],
+    queryKey: [
+      "notifications",
+      { unreadOnly, kind, kinds: kindsFilter, from: fromIso, to: toIso },
+    ],
     initialPageParam: undefined as string | undefined,
     queryFn: ({ pageParam }) =>
       listFn({
@@ -65,11 +74,13 @@ function NotificationsPage() {
           cursor: pageParam,
           unreadOnly,
           kind: kind || undefined,
+          kinds: kindsFilter,
           from: fromIso,
           to: toIso,
         },
       }),
     getNextPageParam: (last) => last?.page?.next_cursor ?? undefined,
+    enabled: hydrated && !noKindsEnabled,
   });
 
 
