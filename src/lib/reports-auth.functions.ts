@@ -110,6 +110,7 @@ export const listMyNotificationsPaged = createServerFn({ method: "GET" })
       cursor?: string;
       unreadOnly?: boolean;
       kind?: string;
+      kinds?: string[];
       from?: string;
       to?: string;
     }) =>
@@ -120,6 +121,7 @@ export const listMyNotificationsPaged = createServerFn({ method: "GET" })
           cursor: z.string().datetime().optional(),
           unreadOnly: z.boolean().optional(),
           kind: z.string().min(1).max(50).optional(),
+          kinds: z.array(z.string().min(1).max(50)).max(20).optional(),
           from: z.string().datetime().optional(),
           to: z.string().datetime().optional(),
         })
@@ -135,6 +137,7 @@ export const listMyNotificationsPaged = createServerFn({ method: "GET" })
       .order("created_at", { ascending: false });
     if (data.unreadOnly) q = q.is("read_at", null);
     if (data.kind) q = q.eq("kind", data.kind);
+    else if (data.kinds && data.kinds.length > 0) q = q.in("kind", data.kinds);
     if (data.from) q = q.gte("created_at", data.from);
     if (data.to) q = q.lte("created_at", data.to);
     if (data.cursor) q = q.lt("created_at", data.cursor);
