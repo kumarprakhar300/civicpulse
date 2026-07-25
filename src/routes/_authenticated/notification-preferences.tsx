@@ -135,14 +135,21 @@ function NotificationPreferencesPage() {
         </div>
 
         <GlassCard className="p-5">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-300">
+          <h2
+            id="notif-kinds-heading"
+            className="text-sm font-semibold uppercase tracking-wide text-slate-300"
+          >
             Notification kinds
           </h2>
           <p className="mt-1 text-xs text-slate-400">
             Disabled kinds are hidden from your Notifications list.
           </p>
           {!hydrated ? (
-            <ul className="mt-4 divide-y divide-white/10">
+            <ul
+              className="mt-4 divide-y divide-white/10"
+              aria-busy="true"
+              aria-labelledby="notif-kinds-heading"
+            >
               {NOTIF_KINDS.map((k) => (
                 <li key={k.value} className="flex items-center justify-between py-3">
                   <div className="space-y-2">
@@ -154,20 +161,31 @@ function NotificationPreferencesPage() {
               ))}
             </ul>
           ) : (
-            <ul className="mt-4 divide-y divide-white/10">
+            <ul
+              className="mt-4 divide-y divide-white/10"
+              role="group"
+              aria-labelledby="notif-kinds-heading"
+            >
               {NOTIF_KINDS.map((k) => {
                 const enabled = prefs.enabledKinds[k.value];
+                const labelId = `notif-kind-label-${k.value}`;
+                const descId = `notif-kind-desc-${k.value}`;
                 return (
                   <li key={k.value} className="flex items-center justify-between py-3">
                     <div>
-                      <div className="text-sm text-slate-100">{k.label}</div>
-                      <div className="text-xs text-slate-500">kind: {k.value}</div>
+                      <div id={labelId} className="text-sm text-slate-100">
+                        {k.label}
+                      </div>
+                      <div id={descId} className="text-xs text-slate-500">
+                        kind: {k.value}
+                      </div>
                     </div>
                     <Toggle
                       checked={enabled}
                       disabled={busy}
-                      onClick={() => toggleKind(k.value)}
-                      label={`Toggle ${k.label}`}
+                      onChange={() => toggleKind(k.value)}
+                      label={`${k.label} notifications`}
+                      describedBy={descId}
                     />
                   </li>
                 );
@@ -177,23 +195,27 @@ function NotificationPreferencesPage() {
         </GlassCard>
 
         <GlassCard className="p-5">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-300">
+          <h2
+            id="notif-default-heading"
+            className="text-sm font-semibold uppercase tracking-wide text-slate-300"
+          >
             Default view
           </h2>
           <div className="mt-3 flex items-center justify-between">
             <div>
-              <div className="text-sm text-slate-100">Show only unread by default</div>
-              <div className="text-xs text-slate-500">
+              <div id="notif-default-label" className="text-sm text-slate-100">
+                Show only unread by default
+              </div>
+              <div id="notif-default-desc" className="text-xs text-slate-500">
                 Applied when you open the Notifications page.
               </div>
             </div>
             <Toggle
               checked={prefs.defaultUnreadOnly}
               disabled={busy}
-              onClick={() =>
-                setPrefs({ ...prefs, defaultUnreadOnly: !prefs.defaultUnreadOnly })
-              }
-              label="Toggle unread-only default"
+              onChange={(next) => setPrefs({ ...prefs, defaultUnreadOnly: next })}
+              label="Show only unread notifications by default"
+              describedBy="notif-default-desc"
             />
           </div>
         </GlassCard>
