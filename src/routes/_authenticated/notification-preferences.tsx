@@ -22,27 +22,44 @@ export const Route = createFileRoute("/_authenticated/notification-preferences")
 function Toggle({
   checked,
   disabled,
-  onClick,
+  onChange,
   label,
+  describedBy,
 }: {
   checked: boolean;
   disabled?: boolean;
-  onClick: () => void;
+  onChange: (next: boolean) => void;
   label: string;
+  describedBy?: string;
 }) {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (disabled) return;
+    // Space/Enter are handled natively by <button>. Add arrow-key semantics
+    // recommended for role="switch" (Left=off, Right=on, Home=off, End=on).
+    if ((e.key === "ArrowLeft" || e.key === "Home") && checked) {
+      e.preventDefault();
+      onChange(false);
+    } else if ((e.key === "ArrowRight" || e.key === "End") && !checked) {
+      e.preventDefault();
+      onChange(true);
+    }
+  };
   return (
     <button
       type="button"
       role="switch"
       aria-checked={checked}
       aria-label={label}
+      aria-describedby={describedBy}
       disabled={disabled}
-      onClick={onClick}
-      className={`relative h-6 w-11 rounded-full transition disabled:cursor-not-allowed disabled:opacity-60 ${
+      onClick={() => onChange(!checked)}
+      onKeyDown={handleKeyDown}
+      className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 disabled:cursor-not-allowed disabled:opacity-60 ${
         checked ? "bg-sky-500" : "bg-slate-700"
       }`}
     >
       <span
+        aria-hidden="true"
         className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition ${
           checked ? "left-5" : "left-0.5"
         }`}
