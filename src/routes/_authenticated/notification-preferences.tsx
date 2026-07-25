@@ -22,27 +22,44 @@ export const Route = createFileRoute("/_authenticated/notification-preferences")
 function Toggle({
   checked,
   disabled,
-  onClick,
+  onChange,
   label,
+  describedBy,
 }: {
   checked: boolean;
   disabled?: boolean;
-  onClick: () => void;
+  onChange: (next: boolean) => void;
   label: string;
+  describedBy?: string;
 }) {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (disabled) return;
+    // Space/Enter are handled natively by <button>. Add arrow-key semantics
+    // recommended for role="switch" (Left=off, Right=on, Home=off, End=on).
+    if ((e.key === "ArrowLeft" || e.key === "Home") && checked) {
+      e.preventDefault();
+      onChange(false);
+    } else if ((e.key === "ArrowRight" || e.key === "End") && !checked) {
+      e.preventDefault();
+      onChange(true);
+    }
+  };
   return (
     <button
       type="button"
       role="switch"
       aria-checked={checked}
       aria-label={label}
+      aria-describedby={describedBy}
       disabled={disabled}
-      onClick={onClick}
-      className={`relative h-6 w-11 rounded-full transition disabled:cursor-not-allowed disabled:opacity-60 ${
+      onClick={() => onChange(!checked)}
+      onKeyDown={handleKeyDown}
+      className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 disabled:cursor-not-allowed disabled:opacity-60 ${
         checked ? "bg-sky-500" : "bg-slate-700"
       }`}
     >
       <span
+        aria-hidden="true"
         className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition ${
           checked ? "left-5" : "left-0.5"
         }`}
@@ -58,33 +75,44 @@ function StatusPill({
   status: "idle" | "saving" | "saved" | "error";
   error: string | null;
 }) {
+  let content: React.ReactNode;
+  let tone = "text-slate-400";
   if (status === "saving") {
-    return (
-      <span className="flex items-center gap-1 text-xs text-slate-400">
-        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving…
-      </span>
+    content = (
+      <>
+        <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> Saving…
+      </>
     );
-  }
-  if (status === "saved") {
-    return (
-      <span className="flex items-center gap-1 text-xs text-emerald-400">
-        <Check className="h-3.5 w-3.5" /> Saved
-      </span>
+  } else if (status === "saved") {
+    tone = "text-emerald-400";
+    content = (
+      <>
+        <Check className="h-3.5 w-3.5" aria-hidden="true" /> Saved
+      </>
     );
-  }
-  if (status === "error") {
-    return (
-      <span
-        className="flex items-center gap-1 text-xs text-red-400"
-        title={error ?? undefined}
-      >
-        <AlertTriangle className="h-3.5 w-3.5" /> Couldn't save — reverted
-      </span>
+  } else if (status === "error") {
+    tone = "text-red-400";
+    content = (
+      <>
+        <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" /> Couldn't save
+        {error ? ` — ${error}` : " — reverted"}
+      </>
+    );
+  } else {
+    content = (
+      <>
+        <Save className="h-3.5 w-3.5" aria-hidden="true" /> Changes save automatically
+      </>
     );
   }
   return (
-    <span className="flex items-center gap-1 text-xs text-slate-400">
-      <Save className="h-3.5 w-3.5" /> Changes save automatically
+    <span
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      className={`flex items-center gap-1 text-xs ${tone}`}
+    >
+      {content}
     </span>
   );
 }
@@ -118,14 +146,21 @@ function NotificationPreferencesPage() {
         </div>
 
         <GlassCard className="p-5">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-300">
+          <h2
+            id="notif-kinds-heading"
+            className="text-sm font-semibold uppercase tracking-wide text-slate-300"
+          >
             Notification kinds
           </h2>
           <p className="mt-1 text-xs text-slate-400">
             Disabled kinds are hidden from your Notifications list.
           </p>
           {!hydrated ? (
-            <ul className="mt-4 divide-y divide-white/10">
+            <ul
+              className="mt-4 divide-y divide-white/10"
+              aria-busy="true"
+              aria-labelledby="notif-kinds-heading"
+            >
               {NOTIF_KINDS.map((k) => (
                 <li key={k.value} className="flex items-center justify-between py-3">
                   <div className="space-y-2">
@@ -137,20 +172,31 @@ function NotificationPreferencesPage() {
               ))}
             </ul>
           ) : (
-            <ul className="mt-4 divide-y divide-white/10">
+            <ul
+              className="mt-4 divide-y divide-white/10"
+              role="group"
+              aria-labelledby="notif-kinds-heading"
+            >
               {NOTIF_KINDS.map((k) => {
                 const enabled = prefs.enabledKinds[k.value];
+                const labelId = `notif-kind-label-${k.value}`;
+                const descId = `notif-kind-desc-${k.value}`;
                 return (
                   <li key={k.value} className="flex items-center justify-between py-3">
                     <div>
-                      <div className="text-sm text-slate-100">{k.label}</div>
-                      <div className="text-xs text-slate-500">kind: {k.value}</div>
+                      <div id={labelId} className="text-sm text-slate-100">
+                        {k.label}
+                      </div>
+                      <div id={descId} className="text-xs text-slate-500">
+                        kind: {k.value}
+                      </div>
                     </div>
                     <Toggle
                       checked={enabled}
                       disabled={busy}
-                      onClick={() => toggleKind(k.value)}
-                      label={`Toggle ${k.label}`}
+                      onChange={() => toggleKind(k.value)}
+                      label={`${k.label} notifications`}
+                      describedBy={descId}
                     />
                   </li>
                 );
@@ -160,23 +206,27 @@ function NotificationPreferencesPage() {
         </GlassCard>
 
         <GlassCard className="p-5">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-300">
+          <h2
+            id="notif-default-heading"
+            className="text-sm font-semibold uppercase tracking-wide text-slate-300"
+          >
             Default view
           </h2>
           <div className="mt-3 flex items-center justify-between">
             <div>
-              <div className="text-sm text-slate-100">Show only unread by default</div>
-              <div className="text-xs text-slate-500">
+              <div id="notif-default-label" className="text-sm text-slate-100">
+                Show only unread by default
+              </div>
+              <div id="notif-default-desc" className="text-xs text-slate-500">
                 Applied when you open the Notifications page.
               </div>
             </div>
             <Toggle
               checked={prefs.defaultUnreadOnly}
               disabled={busy}
-              onClick={() =>
-                setPrefs({ ...prefs, defaultUnreadOnly: !prefs.defaultUnreadOnly })
-              }
-              label="Toggle unread-only default"
+              onChange={(next) => setPrefs({ ...prefs, defaultUnreadOnly: next })}
+              label="Show only unread notifications by default"
+              describedBy="notif-default-desc"
             />
           </div>
         </GlassCard>
