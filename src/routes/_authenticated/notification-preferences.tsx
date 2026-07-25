@@ -75,33 +75,44 @@ function StatusPill({
   status: "idle" | "saving" | "saved" | "error";
   error: string | null;
 }) {
+  let content: React.ReactNode;
+  let tone = "text-slate-400";
   if (status === "saving") {
-    return (
-      <span className="flex items-center gap-1 text-xs text-slate-400">
-        <Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving…
-      </span>
+    content = (
+      <>
+        <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" /> Saving…
+      </>
     );
-  }
-  if (status === "saved") {
-    return (
-      <span className="flex items-center gap-1 text-xs text-emerald-400">
-        <Check className="h-3.5 w-3.5" /> Saved
-      </span>
+  } else if (status === "saved") {
+    tone = "text-emerald-400";
+    content = (
+      <>
+        <Check className="h-3.5 w-3.5" aria-hidden="true" /> Saved
+      </>
     );
-  }
-  if (status === "error") {
-    return (
-      <span
-        className="flex items-center gap-1 text-xs text-red-400"
-        title={error ?? undefined}
-      >
-        <AlertTriangle className="h-3.5 w-3.5" /> Couldn't save — reverted
-      </span>
+  } else if (status === "error") {
+    tone = "text-red-400";
+    content = (
+      <>
+        <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" /> Couldn't save
+        {error ? ` — ${error}` : " — reverted"}
+      </>
+    );
+  } else {
+    content = (
+      <>
+        <Save className="h-3.5 w-3.5" aria-hidden="true" /> Changes save automatically
+      </>
     );
   }
   return (
-    <span className="flex items-center gap-1 text-xs text-slate-400">
-      <Save className="h-3.5 w-3.5" /> Changes save automatically
+    <span
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      className={`flex items-center gap-1 text-xs ${tone}`}
+    >
+      {content}
     </span>
   );
 }
