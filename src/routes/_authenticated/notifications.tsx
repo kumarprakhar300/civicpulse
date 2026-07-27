@@ -3,6 +3,7 @@ import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-q
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Bell, BellOff, Check, Loader2, Settings2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageShell, GlassCard } from "@/components/PageShell";
@@ -92,6 +93,44 @@ function NotificationsPage() {
     mutationFn: () => markAllFn(),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
   });
+
+  // Real-time updates: refetch the already-loaded pages in place so the
+  // current filters, unread toggle and scroll position are preserved.
+  const [live, setLive] = useState(false);
+  useEffect(() => {
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+    let cancelled = false;
+
+    const scheduleRefresh = () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(() => {
+        qc.invalidateQueries({ queryKey: ["notifications"], refetchType: "active" });
+      }, 400);
+    };
+
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      const uid = data.user?.id;
+      if (!uid || cancelled) return;
+      channel = supabase
+        .channel("notifications-live")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${uid}` },
+          scheduleRefresh,
+        )
+        .subscribe((status) => {
+          if (!cancelled) setLive(status === "SUBSCRIBED");
+        });
+    })();
+
+    return () => {
+      cancelled = true;
+      if (refreshTimer) clearTimeout(refreshTimer);
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [qc]);
 
   // Infinite scroll sentinel
   const sentinel = useRef<HTMLDivElement | null>(null);
