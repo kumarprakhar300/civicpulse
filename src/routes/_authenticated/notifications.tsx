@@ -162,8 +162,17 @@ function NotificationsPage() {
           <div>
             <h1 className="flex items-center gap-2 text-2xl font-semibold text-white">
               <Bell className="h-6 w-6" /> Notifications
+              {live && (
+                <span
+                  className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-emerald-300"
+                  title="Live updates enabled"
+                >
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" aria-hidden="true" />
+                  Live
+                </span>
+              )}
             </h1>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-400" role="status" aria-live="polite">
               {total} total {unreadOnly ? "unread" : ""} update{total === 1 ? "" : "s"}
               {!allKindsEnabled && !noKindsEnabled && " · some kinds hidden by your preferences"}
             </p>
