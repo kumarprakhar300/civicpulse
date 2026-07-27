@@ -129,15 +129,21 @@ function NotificationsPage() {
               {!allKindsEnabled && !noKindsEnabled && " · some kinds hidden by your preferences"}
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Link to="/notification-preferences">
-              <Button variant="outline" size="sm">
-                <Settings2 className="mr-1 h-4 w-4" /> Preferences
-              </Button>
-            </Link>
+          <div className="flex items-center gap-2" role="group" aria-label="Notification controls">
             <Button
               variant="outline"
               size="sm"
+              asChild
+            >
+              <Link to="/notification-preferences" aria-label="Open notification preferences">
+                <Settings2 className="mr-1 h-4 w-4" aria-hidden="true" /> Preferences
+              </Link>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              aria-pressed={unreadOnly}
+              aria-label="Show only unread notifications"
               onClick={() => {
                 setUnreadTouched(true);
                 setUnreadOnly((v) => !v);
@@ -147,22 +153,26 @@ function NotificationsPage() {
             </Button>
             <Button
               size="sm"
+              aria-label="Mark all notifications as read"
               onClick={() => markAll.mutate()}
               disabled={markAll.isPending || items.every((n: any) => n.read_at)}
             >
-              <Check className="mr-1 h-4 w-4" /> Mark all read
+              <Check className="mr-1 h-4 w-4" aria-hidden="true" /> Mark all read
             </Button>
           </div>
         </div>
 
         <GlassCard className="p-4">
-          <div className="flex flex-wrap items-end gap-3">
+          <div className="flex flex-wrap items-end gap-3" role="group" aria-label="Notification filters">
             <div className="flex flex-col">
-              <label className="mb-1 text-xs text-slate-400">Kind</label>
+              <label htmlFor="notif-filter-kind" className="mb-1 text-xs text-slate-400">
+                Kind
+              </label>
               <select
+                id="notif-filter-kind"
                 value={kind}
                 onChange={(e) => setKind(e.target.value)}
-                className="h-9 rounded-md border border-white/10 bg-slate-900/60 px-2 text-sm text-slate-100"
+                className="h-9 rounded-md border border-white/10 bg-slate-900/60 px-2 text-sm text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
               >
                 <option value="">All kinds</option>
                 <option value="status_change">Status change</option>
@@ -172,27 +182,34 @@ function NotificationsPage() {
               </select>
             </div>
             <div className="flex flex-col">
-              <label className="mb-1 text-xs text-slate-400">From</label>
+              <label htmlFor="notif-filter-from" className="mb-1 text-xs text-slate-400">
+                From
+              </label>
               <input
+                id="notif-filter-from"
                 type="date"
                 value={from}
                 onChange={(e) => setFrom(e.target.value)}
-                className="h-9 rounded-md border border-white/10 bg-slate-900/60 px-2 text-sm text-slate-100"
+                className="h-9 rounded-md border border-white/10 bg-slate-900/60 px-2 text-sm text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
               />
             </div>
             <div className="flex flex-col">
-              <label className="mb-1 text-xs text-slate-400">To</label>
+              <label htmlFor="notif-filter-to" className="mb-1 text-xs text-slate-400">
+                To
+              </label>
               <input
+                id="notif-filter-to"
                 type="date"
                 value={to}
                 onChange={(e) => setTo(e.target.value)}
-                className="h-9 rounded-md border border-white/10 bg-slate-900/60 px-2 text-sm text-slate-100"
+                className="h-9 rounded-md border border-white/10 bg-slate-900/60 px-2 text-sm text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
               />
             </div>
             {(kind || from || to) && (
               <Button
                 variant="ghost"
                 size="sm"
+                aria-label="Clear notification filters"
                 onClick={() => {
                   setKind("");
                   setFrom("");
@@ -265,10 +282,12 @@ function NotificationsPage() {
                     <Button
                       variant="ghost"
                       size="sm"
+                      className="min-h-11 min-w-11"
+                      aria-label={`Mark notification as read: ${n.message ?? "update"}`}
                       onClick={() => markOne.mutate(n.id)}
                       disabled={markOne.isPending}
                     >
-                      <Check className="h-4 w-4" />
+                      <Check className="h-4 w-4" aria-hidden="true" />
                     </Button>
                   )}
                 </li>
