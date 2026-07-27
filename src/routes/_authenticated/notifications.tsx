@@ -3,6 +3,7 @@ import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-q
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Bell, BellOff, Check, Loader2, Settings2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PageShell, GlassCard } from "@/components/PageShell";
@@ -93,6 +94,44 @@ function NotificationsPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
   });
 
+  // Real-time updates: refetch the already-loaded pages in place so the
+  // current filters, unread toggle and scroll position are preserved.
+  const [live, setLive] = useState(false);
+  useEffect(() => {
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+    let cancelled = false;
+
+    const scheduleRefresh = () => {
+      if (refreshTimer) clearTimeout(refreshTimer);
+      refreshTimer = setTimeout(() => {
+        qc.invalidateQueries({ queryKey: ["notifications"], refetchType: "active" });
+      }, 400);
+    };
+
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      const uid = data.user?.id;
+      if (!uid || cancelled) return;
+      channel = supabase
+        .channel("notifications-live")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${uid}` },
+          scheduleRefresh,
+        )
+        .subscribe((status) => {
+          if (!cancelled) setLive(status === "SUBSCRIBED");
+        });
+    })();
+
+    return () => {
+      cancelled = true;
+      if (refreshTimer) clearTimeout(refreshTimer);
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [qc]);
+
   // Infinite scroll sentinel
   const sentinel = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -123,8 +162,17 @@ function NotificationsPage() {
           <div>
             <h1 className="flex items-center gap-2 text-2xl font-semibold text-white">
               <Bell className="h-6 w-6" /> Notifications
+              {live && (
+                <span
+                  className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-emerald-300"
+                  title="Live updates enabled"
+                >
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" aria-hidden="true" />
+                  Live
+                </span>
+              )}
             </h1>
-            <p className="text-sm text-slate-400">
+            <p className="text-sm text-slate-400" role="status" aria-live="polite">
               {total} total {unreadOnly ? "unread" : ""} update{total === 1 ? "" : "s"}
               {!allKindsEnabled && !noKindsEnabled && " · some kinds hidden by your preferences"}
             </p>
