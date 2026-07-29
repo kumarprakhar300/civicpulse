@@ -97,6 +97,10 @@ function NotificationsPage() {
   // Real-time updates: refetch the already-loaded pages in place so the
   // current filters, unread toggle and scroll position are preserved.
   const [live, setLive] = useState(false);
+  const [realtimeError, setRealtimeError] = useState(false);
+  const [realtimeAttempt, setRealtimeAttempt] = useState(0);
+  const [reconnecting, setReconnecting] = useState(false);
+
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel> | null = null;
     let refreshTimer: ReturnType<typeof setTimeout> | null = null;
@@ -114,14 +118,29 @@ function NotificationsPage() {
       const uid = data.user?.id;
       if (!uid || cancelled) return;
       channel = supabase
-        .channel("notifications-live")
+        .channel(`notifications-live-${realtimeAttempt}`)
         .on(
           "postgres_changes",
           { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${uid}` },
           scheduleRefresh,
         )
         .subscribe((status) => {
-          if (!cancelled) setLive(status === "SUBSCRIBED");
+          if (cancelled) return;
+          const ok = status === "SUBSCRIBED";
+          setLive(ok);
+          if (ok) {
+            setRealtimeError(false);
+            setReconnecting(false);
+            // Catch up on anything missed while disconnected.
+            scheduleRefresh();
+          } else if (
+            status === "CHANNEL_ERROR" ||
+            status === "TIMED_OUT" ||
+            status === "CLOSED"
+          ) {
+            setRealtimeError(true);
+            setReconnecting(false);
+          }
         });
     })();
 
@@ -130,7 +149,14 @@ function NotificationsPage() {
       if (refreshTimer) clearTimeout(refreshTimer);
       if (channel) supabase.removeChannel(channel);
     };
-  }, [qc]);
+  }, [qc, realtimeAttempt]);
+
+  const reconnectRealtime = () => {
+    setReconnecting(true);
+    setRealtimeError(false);
+    query.refetch();
+    setRealtimeAttempt((n) => n + 1);
+  };
 
   // Infinite scroll sentinel
   const sentinel = useRef<HTMLDivElement | null>(null);
@@ -270,6 +296,16 @@ function NotificationsPage() {
           </div>
         </GlassCard>
 
+        {realtimeError && !live && (
+          <StateMessage
+            tone="error"
+            icon={<BellOff className="h-5 w-5" />}
+            title="Live updates disconnected"
+            description="New notifications won't appear automatically. Your list still loads — reconnect to resume live updates."
+            onRetry={reconnectRealtime}
+            retrying={reconnecting}
+          />
+        )}
 
 
         <GlassCard>
