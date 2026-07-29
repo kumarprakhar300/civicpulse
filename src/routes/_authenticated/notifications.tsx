@@ -296,6 +296,16 @@ function NotificationsPage() {
           </div>
         </GlassCard>
 
+        {realtimeError && !live && (
+          <StateMessage
+            tone="error"
+            icon={<BellOff className="h-5 w-5" />}
+            title="Live updates disconnected"
+            description="New notifications won't appear automatically. Your list still loads — reconnect to resume live updates."
+            onRetry={reconnectRealtime}
+            retrying={reconnecting}
+          />
+        )}
 
 
         <GlassCard>
