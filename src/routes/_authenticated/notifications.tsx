@@ -181,6 +181,34 @@ function NotificationsPage() {
     : rawItems.filter((n: any) => !n.kind || enabledKindValues.includes(n.kind));
   const total = query.data?.pages[0]?.page?.total ?? 0;
 
+  const connState: "connected" | "reconnecting" | "disconnected" = live
+    ? "connected"
+    : reconnecting
+      ? "reconnecting"
+      : realtimeError
+        ? "disconnected"
+        : "reconnecting";
+  const connMeta = {
+    connected: {
+      label: "Connected",
+      sr: "Live updates connected. New notifications appear automatically.",
+      classes: "border-emerald-400/30 bg-emerald-400/10 text-emerald-300",
+      dot: "bg-emerald-400 animate-pulse",
+    },
+    reconnecting: {
+      label: "Reconnecting",
+      sr: "Reconnecting to live updates.",
+      classes: "border-amber-400/30 bg-amber-400/10 text-amber-300",
+      dot: "bg-amber-400 animate-pulse",
+    },
+    disconnected: {
+      label: "Disconnected",
+      sr: "Live updates disconnected. Use the reconnect button to resume live updates.",
+      classes: "border-rose-400/30 bg-rose-400/10 text-rose-300",
+      dot: "bg-rose-400",
+    },
+  }[connState];
+
   return (
     <PageShell>
       <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
@@ -188,21 +216,23 @@ function NotificationsPage() {
           <div>
             <h1 className="flex items-center gap-2 text-2xl font-semibold text-white">
               <Bell className="h-6 w-6" /> Notifications
-              {live && (
-                <span
-                  className="inline-flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-emerald-300"
-                  title="Live updates enabled"
-                >
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" aria-hidden="true" />
-                  Live
-                </span>
-              )}
+              <span
+                className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ${connMeta.classes}`}
+                title={connMeta.sr}
+              >
+                <span className={`h-1.5 w-1.5 rounded-full ${connMeta.dot}`} aria-hidden="true" />
+                {connMeta.label}
+              </span>
             </h1>
+            <p role="status" aria-live="polite" className="sr-only">
+              {connMeta.sr}
+            </p>
             <p className="text-sm text-slate-400" role="status" aria-live="polite">
               {total} total {unreadOnly ? "unread" : ""} update{total === 1 ? "" : "s"}
               {!allKindsEnabled && !noKindsEnabled && " · some kinds hidden by your preferences"}
             </p>
           </div>
+
           <div className="flex items-center gap-2" role="group" aria-label="Notification controls">
             <Button
               variant="outline"
