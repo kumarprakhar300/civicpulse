@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
+import { useLocalizedPrice } from "@/hooks/useLocalizedPrice";
 
 export const Route = createFileRoute("/pricing")({
   head: () => ({
