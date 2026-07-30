@@ -366,7 +366,7 @@ function NotificationsPage() {
                 className="h-9 rounded-md border border-white/10 bg-slate-900/60 px-2 text-sm text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
               />
             </div>
-            {(kind || from || to) && (
+            {(kind || from || to || search) && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -375,6 +375,7 @@ function NotificationsPage() {
                   setKind("");
                   setFrom("");
                   setTo("");
+                  setSearch("");
                 }}
               >
                 Clear
