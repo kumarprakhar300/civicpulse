@@ -100,8 +100,15 @@ function NotificationsPage() {
   const [realtimeError, setRealtimeError] = useState(false);
   const [realtimeAttempt, setRealtimeAttempt] = useState(0);
   const [reconnecting, setReconnecting] = useState(false);
+  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
+    if (paused) {
+      setLive(false);
+      setRealtimeError(false);
+      setReconnecting(false);
+      return;
+    }
     let channel: ReturnType<typeof supabase.channel> | null = null;
     let refreshTimer: ReturnType<typeof setTimeout> | null = null;
     let cancelled = false;
@@ -149,7 +156,7 @@ function NotificationsPage() {
       if (refreshTimer) clearTimeout(refreshTimer);
       if (channel) supabase.removeChannel(channel);
     };
-  }, [qc, realtimeAttempt]);
+  }, [qc, realtimeAttempt, paused]);
 
   const reconnectRealtime = () => {
     setReconnecting(true);
