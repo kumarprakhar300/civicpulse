@@ -188,13 +188,15 @@ function NotificationsPage() {
     : rawItems.filter((n: any) => !n.kind || enabledKindValues.includes(n.kind));
   const total = query.data?.pages[0]?.page?.total ?? 0;
 
-  const connState: "connected" | "reconnecting" | "disconnected" = live
-    ? "connected"
-    : reconnecting
-      ? "reconnecting"
-      : realtimeError
-        ? "disconnected"
-        : "reconnecting";
+  const connState: "connected" | "reconnecting" | "disconnected" | "paused" = paused
+    ? "paused"
+    : live
+      ? "connected"
+      : reconnecting
+        ? "reconnecting"
+        : realtimeError
+          ? "disconnected"
+          : "reconnecting";
   const connMeta = {
     connected: {
       label: "Connected",
@@ -213,6 +215,12 @@ function NotificationsPage() {
       sr: "Live updates disconnected. Use the reconnect button to resume live updates.",
       classes: "border-rose-400/30 bg-rose-400/10 text-rose-300",
       dot: "bg-rose-400",
+    },
+    paused: {
+      label: "Paused",
+      sr: "Live updates paused. Your list stays as-is until you resume.",
+      classes: "border-slate-400/30 bg-slate-400/10 text-slate-300",
+      dot: "bg-slate-400",
     },
   }[connState];
 
