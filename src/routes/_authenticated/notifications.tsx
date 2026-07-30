@@ -252,6 +252,19 @@ function NotificationsPage() {
             <Button
               variant="outline"
               size="sm"
+              aria-pressed={paused}
+              aria-label={paused ? "Resume live notification updates" : "Pause live notification updates"}
+              onClick={() => setPaused((v) => !v)}
+            >
+              {paused ? (
+                <><Play className="mr-1 h-4 w-4" aria-hidden="true" /> Resume live</>
+              ) : (
+                <><Pause className="mr-1 h-4 w-4" aria-hidden="true" /> Pause live</>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               asChild
             >
               <Link to="/notification-preferences" aria-label="Open notification preferences">
