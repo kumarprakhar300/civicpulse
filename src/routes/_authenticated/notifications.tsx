@@ -39,6 +39,14 @@ function NotificationsPage() {
   const [kind, setKind] = useState<string>("");
   const [from, setFrom] = useState<string>("");
   const [to, setTo] = useState<string>("");
+  const [search, setSearch] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+
+  // Debounce the search box so infinite scroll isn't refetched on every keystroke
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search.trim()), 350);
+    return () => clearTimeout(t);
+  }, [search]);
 
   // Apply user's default "unread only" pref on first hydration
   useEffect(() => {
