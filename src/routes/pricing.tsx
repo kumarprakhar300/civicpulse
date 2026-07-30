@@ -55,7 +55,15 @@ function PricingPage() {
   const [billing, setBilling] = useState<Billing>("monthly");
   const [salesOpen, setSalesOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const { openCheckout, loading: checkoutLoading } = usePaddleCheckout();
+  const {
+    openCheckout,
+    retryCheckout,
+    dismissFailure,
+    loading: checkoutLoading,
+    state: checkoutState,
+    lastAttempt,
+    failureReason,
+  } = usePaddleCheckout();
   const { label: localizedPrice, currency } = useLocalizedPrice(
     CITY_NGO[billing].priceId,
     CITY_NGO[billing].label,
