@@ -113,6 +113,7 @@ export const listMyNotificationsPaged = createServerFn({ method: "GET" })
       kinds?: string[];
       from?: string;
       to?: string;
+      search?: string;
     }) =>
       z
         .object({
@@ -124,6 +125,7 @@ export const listMyNotificationsPaged = createServerFn({ method: "GET" })
           kinds: z.array(z.string().min(1).max(50)).max(20).optional(),
           from: z.string().datetime().optional(),
           to: z.string().datetime().optional(),
+          search: z.string().max(200).optional(),
         })
         .parse(d ?? {}),
   )
@@ -141,6 +143,12 @@ export const listMyNotificationsPaged = createServerFn({ method: "GET" })
     if (data.from) q = q.gte("created_at", data.from);
     if (data.to) q = q.lte("created_at", data.to);
     if (data.cursor) q = q.lt("created_at", data.cursor);
+    const term = data.search?.trim();
+    if (term) {
+      // Strip PostgREST filter metacharacters, then match message or kind.
+      const safe = term.replace(/[,()*\\%]/g, " ").trim();
+      if (safe) q = q.or(`message.ilike.%${safe}%,kind.ilike.%${safe}%`);
+    }
     q = q.range(skip, skip + pageSize - 1);
     const { data: rows, error, count } = await q;
     if (error) throw error;

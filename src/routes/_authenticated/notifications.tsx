@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Bell, BellOff, Check, Loader2, Pause, Play, Settings2 } from "lucide-react";
+import { Bell, BellOff, Check, Loader2, Pause, Play, Search, Settings2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +39,14 @@ function NotificationsPage() {
   const [kind, setKind] = useState<string>("");
   const [from, setFrom] = useState<string>("");
   const [to, setTo] = useState<string>("");
+  const [search, setSearch] = useState<string>("");
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+
+  // Debounce the search box so infinite scroll isn't refetched on every keystroke
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search.trim()), 350);
+    return () => clearTimeout(t);
+  }, [search]);
 
   // Apply user's default "unread only" pref on first hydration
   useEffect(() => {
@@ -65,7 +73,7 @@ function NotificationsPage() {
   const query = useInfiniteQuery({
     queryKey: [
       "notifications",
-      { unreadOnly, kind, kinds: kindsFilter, from: fromIso, to: toIso },
+      { unreadOnly, kind, kinds: kindsFilter, from: fromIso, to: toIso, search: debouncedSearch },
     ],
     initialPageParam: undefined as string | undefined,
     queryFn: ({ pageParam }) =>
@@ -78,6 +86,7 @@ function NotificationsPage() {
           kinds: kindsFilter,
           from: fromIso,
           to: toIso,
+          search: debouncedSearch || undefined,
         },
       }),
     getNextPageParam: (last) => last?.page?.next_cursor ?? undefined,
@@ -296,6 +305,26 @@ function NotificationsPage() {
 
         <GlassCard className="p-4">
           <div className="flex flex-wrap items-end gap-3" role="group" aria-label="Notification filters">
+            <div className="flex min-w-[12rem] flex-1 flex-col">
+              <label htmlFor="notif-search" className="mb-1 text-xs text-slate-400">
+                Search
+              </label>
+              <div className="relative">
+                <Search
+                  className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+                  aria-hidden="true"
+                />
+                <input
+                  id="notif-search"
+                  type="search"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search notification text…"
+                  aria-label="Search notifications by text"
+                  className="h-9 w-full rounded-md border border-white/10 bg-slate-900/60 pl-8 pr-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-sky-400"
+                />
+              </div>
+            </div>
             <div className="flex flex-col">
               <label htmlFor="notif-filter-kind" className="mb-1 text-xs text-slate-400">
                 Kind
@@ -337,7 +366,7 @@ function NotificationsPage() {
                 className="h-9 rounded-md border border-white/10 bg-slate-900/60 px-2 text-sm text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
               />
             </div>
-            {(kind || from || to) && (
+            {(kind || from || to || search) && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -346,6 +375,7 @@ function NotificationsPage() {
                   setKind("");
                   setFrom("");
                   setTo("");
+                  setSearch("");
                 }}
               >
                 Clear
