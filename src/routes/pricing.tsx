@@ -90,6 +90,7 @@ function PricingPage() {
     try {
       await openCheckout({
         priceId: CITY_NGO[billing].priceId,
+        planLabel: billing === "yearly" ? "City / NGO — Yearly" : "City / NGO — Monthly",
         customerEmail: data.user.email ?? undefined,
         customData: { userId: data.user.id, plan: billing },
         successUrl: `${window.location.origin}/dashboard?checkout=success`,
