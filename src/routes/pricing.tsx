@@ -56,6 +56,11 @@ function PricingPage() {
   const [salesOpen, setSalesOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const { openCheckout, loading: checkoutLoading } = usePaddleCheckout();
+  const { label: localizedPrice, currency } = useLocalizedPrice(
+    CITY_NGO[billing].priceId,
+    CITY_NGO[billing].label,
+  );
+
 
   async function handleCitizen() {
     const { data } = await supabase.auth.getUser();
