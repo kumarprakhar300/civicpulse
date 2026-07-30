@@ -14,6 +14,45 @@ export function getPaddleEnvironment(): "sandbox" | "live" {
 
 let paddleInitialized = false;
 
+export type CheckoutOutcome = "completed" | "closed" | "error" | "payment_failed";
+type Listener = (outcome: CheckoutOutcome, data?: any) => void;
+const listeners = new Set<Listener>();
+
+/** Subscribe to checkout lifecycle events (success / cancel / failure). */
+export function onCheckoutEvent(listener: Listener) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+function emit(outcome: CheckoutOutcome, data?: any) {
+  listeners.forEach((l) => {
+    try {
+      l(outcome, data);
+    } catch (e) {
+      console.error("checkout listener error", e);
+    }
+  });
+}
+
+function paddleEventCallback(event: { name?: string; data?: any }) {
+  switch (event?.name) {
+    case "checkout.completed":
+      emit("completed", event.data);
+      break;
+    case "checkout.closed":
+      emit("closed", event.data);
+      break;
+    case "checkout.payment.failed":
+      emit("payment_failed", event.data);
+      break;
+    case "checkout.error":
+      emit("error", event.data);
+      break;
+    default:
+      break;
+  }
+}
+
 export async function initializePaddle() {
   if (paddleInitialized) return;
   if (!clientToken) throw new Error("VITE_PAYMENTS_CLIENT_TOKEN is not set");
@@ -23,7 +62,7 @@ export async function initializePaddle() {
     if (window.Paddle) {
       const envName = getPaddleEnvironment() === "sandbox" ? "sandbox" : "production";
       window.Paddle.Environment.set(envName);
-      window.Paddle.Initialize({ token: clientToken });
+      window.Paddle.Initialize({ token: clientToken, eventCallback: paddleEventCallback });
       paddleInitialized = true;
       return resolve();
     }
@@ -32,7 +71,7 @@ export async function initializePaddle() {
     script.onload = () => {
       const envName = getPaddleEnvironment() === "sandbox" ? "sandbox" : "production";
       window.Paddle.Environment.set(envName);
-      window.Paddle.Initialize({ token: clientToken });
+      window.Paddle.Initialize({ token: clientToken, eventCallback: paddleEventCallback });
       paddleInitialized = true;
       resolve();
     };
