@@ -166,7 +166,42 @@ function PricingPage() {
           </div>
         </div>
 
+        {checkoutState === "failed" && lastAttempt && (
+          <div
+            role="alert"
+            aria-live="assertive"
+            className="mx-auto mt-10 max-w-3xl rounded-2xl border border-rose-500/40 bg-rose-500/10 p-5 text-left backdrop-blur"
+          >
+            <p className="text-sm font-semibold text-rose-100">
+              Payment didn&apos;t go through
+            </p>
+            <p className="mt-1 text-sm text-rose-100/80">
+              {failureReason ?? "Your payment could not be completed."} Your selected plan
+              is still saved.
+            </p>
+            <p className="mt-3 text-xs text-rose-100/70">
+              Selected plan:{" "}
+              <span className="font-semibold text-rose-50">
+                {lastAttempt.planLabel ?? lastAttempt.priceId}
+              </span>
+            </p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Button
+                onClick={() => void retryCheckout()}
+                disabled={checkoutLoading}
+                className="bg-rose-500 text-white hover:bg-rose-400"
+              >
+                {checkoutLoading ? "Reopening checkout…" : "Change payment method"}
+              </Button>
+              <Button variant="ghost" onClick={dismissFailure} className="text-rose-100/80">
+                Dismiss
+              </Button>
+            </div>
+          </div>
+        )}
+
         <div className="mt-12 grid gap-6 md:grid-cols-3">
+
           {/* Citizen */}
           <TierCard
             hue="from-cyan-500/30 to-blue-600/10"
