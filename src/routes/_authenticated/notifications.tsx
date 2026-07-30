@@ -305,6 +305,26 @@ function NotificationsPage() {
 
         <GlassCard className="p-4">
           <div className="flex flex-wrap items-end gap-3" role="group" aria-label="Notification filters">
+            <div className="flex min-w-[12rem] flex-1 flex-col">
+              <label htmlFor="notif-search" className="mb-1 text-xs text-slate-400">
+                Search
+              </label>
+              <div className="relative">
+                <Search
+                  className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500"
+                  aria-hidden="true"
+                />
+                <input
+                  id="notif-search"
+                  type="search"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search notification text…"
+                  aria-label="Search notifications by text"
+                  className="h-9 w-full rounded-md border border-white/10 bg-slate-900/60 pl-8 pr-2 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-sky-400"
+                />
+              </div>
+            </div>
             <div className="flex flex-col">
               <label htmlFor="notif-filter-kind" className="mb-1 text-xs text-slate-400">
                 Kind
