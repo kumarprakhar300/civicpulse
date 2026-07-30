@@ -181,7 +181,7 @@ function PricingPage() {
             hue="from-indigo-500/40 to-purple-600/20"
             highlight
             title="City / NGO"
-            price={cityNgo.label}
+            price={localizedPrice}
             suffix={cityNgo.suffix}
             tagline={
               billing === "yearly"
@@ -220,6 +220,30 @@ function PricingPage() {
             onCta={() => setSalesOpen(true)}
           />
         </div>
+
+        {/* India-ready payment methods */}
+        <div className="mx-auto mt-10 max-w-3xl rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-center backdrop-blur">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">
+            Payments made in India
+          </p>
+          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+            {["UPI", "RuPay", "Visa / Mastercard", "Net banking", "Wallets"].map((m) => (
+              <span
+                key={m}
+                className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-medium text-slate-200"
+              >
+                {m}
+              </span>
+            ))}
+          </div>
+          <p className="mt-4 text-xs text-slate-400">
+            Billed in ₹ INR with a GST-compliant invoice, RBI-compliant recurring mandates, and
+            automatic currency conversion for international buyers
+            {currency && currency !== "INR" ? ` (showing ${currency})` : ""}.
+          </p>
+        </div>
+
+
 
         <p className="mt-10 text-center text-xs text-slate-500">
           Prefer email?{" "}
