@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Bell, BellOff, Check, Loader2, Settings2 } from "lucide-react";
+import { Bell, BellOff, Check, Loader2, Pause, Play, Settings2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -100,8 +100,15 @@ function NotificationsPage() {
   const [realtimeError, setRealtimeError] = useState(false);
   const [realtimeAttempt, setRealtimeAttempt] = useState(0);
   const [reconnecting, setReconnecting] = useState(false);
+  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
+    if (paused) {
+      setLive(false);
+      setRealtimeError(false);
+      setReconnecting(false);
+      return;
+    }
     let channel: ReturnType<typeof supabase.channel> | null = null;
     let refreshTimer: ReturnType<typeof setTimeout> | null = null;
     let cancelled = false;
@@ -149,7 +156,7 @@ function NotificationsPage() {
       if (refreshTimer) clearTimeout(refreshTimer);
       if (channel) supabase.removeChannel(channel);
     };
-  }, [qc, realtimeAttempt]);
+  }, [qc, realtimeAttempt, paused]);
 
   const reconnectRealtime = () => {
     setReconnecting(true);
@@ -181,13 +188,15 @@ function NotificationsPage() {
     : rawItems.filter((n: any) => !n.kind || enabledKindValues.includes(n.kind));
   const total = query.data?.pages[0]?.page?.total ?? 0;
 
-  const connState: "connected" | "reconnecting" | "disconnected" = live
-    ? "connected"
-    : reconnecting
-      ? "reconnecting"
-      : realtimeError
-        ? "disconnected"
-        : "reconnecting";
+  const connState: "connected" | "reconnecting" | "disconnected" | "paused" = paused
+    ? "paused"
+    : live
+      ? "connected"
+      : reconnecting
+        ? "reconnecting"
+        : realtimeError
+          ? "disconnected"
+          : "reconnecting";
   const connMeta = {
     connected: {
       label: "Connected",
@@ -206,6 +215,12 @@ function NotificationsPage() {
       sr: "Live updates disconnected. Use the reconnect button to resume live updates.",
       classes: "border-rose-400/30 bg-rose-400/10 text-rose-300",
       dot: "bg-rose-400",
+    },
+    paused: {
+      label: "Paused",
+      sr: "Live updates paused. Your list stays as-is until you resume.",
+      classes: "border-slate-400/30 bg-slate-400/10 text-slate-300",
+      dot: "bg-slate-400",
     },
   }[connState];
 
@@ -234,6 +249,19 @@ function NotificationsPage() {
           </div>
 
           <div className="flex items-center gap-2" role="group" aria-label="Notification controls">
+            <Button
+              variant="outline"
+              size="sm"
+              aria-pressed={paused}
+              aria-label={paused ? "Resume live notification updates" : "Pause live notification updates"}
+              onClick={() => setPaused((v) => !v)}
+            >
+              {paused ? (
+                <><Play className="mr-1 h-4 w-4" aria-hidden="true" /> Resume live</>
+              ) : (
+                <><Pause className="mr-1 h-4 w-4" aria-hidden="true" /> Pause live</>
+              )}
+            </Button>
             <Button
               variant="outline"
               size="sm"
