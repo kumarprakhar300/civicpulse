@@ -73,7 +73,7 @@ function NotificationsPage() {
   const query = useInfiniteQuery({
     queryKey: [
       "notifications",
-      { unreadOnly, kind, kinds: kindsFilter, from: fromIso, to: toIso },
+      { unreadOnly, kind, kinds: kindsFilter, from: fromIso, to: toIso, search: debouncedSearch },
     ],
     initialPageParam: undefined as string | undefined,
     queryFn: ({ pageParam }) =>
@@ -86,6 +86,7 @@ function NotificationsPage() {
           kinds: kindsFilter,
           from: fromIso,
           to: toIso,
+          search: debouncedSearch || undefined,
         },
       }),
     getNextPageParam: (last) => last?.page?.next_cursor ?? undefined,
