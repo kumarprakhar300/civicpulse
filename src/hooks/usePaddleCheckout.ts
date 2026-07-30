@@ -10,7 +10,7 @@ export function usePaddleCheckout() {
   const openRef = useRef(false);
 
   useEffect(() => {
-    return onCheckoutEvent((outcome) => {
+    const unsubscribe = onCheckoutEvent((outcome) => {
       if (!openRef.current) return;
       if (outcome === "completed") {
         openRef.current = false;
@@ -29,6 +29,9 @@ export function usePaddleCheckout() {
         );
       }
     });
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   const openCheckout = async (options: {
