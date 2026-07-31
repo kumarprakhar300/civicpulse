@@ -14,7 +14,12 @@ export function getPaddleEnvironment(): "sandbox" | "live" {
 
 let paddleInitialized = false;
 
-export type CheckoutOutcome = "completed" | "closed" | "error" | "payment_failed";
+export type CheckoutOutcome =
+  | "completed"
+  | "closed"
+  | "error"
+  | "payment_failed"
+  | "payment_selected";
 type Listener = (outcome: CheckoutOutcome, data?: any) => void;
 const listeners = new Set<Listener>();
 
@@ -44,6 +49,10 @@ function paddleEventCallback(event: { name?: string; data?: any }) {
       break;
     case "checkout.payment.failed":
       emit("payment_failed", event.data);
+      break;
+    case "checkout.payment.selected":
+    case "checkout.payment.initiated":
+      emit("payment_selected", event.data);
       break;
     case "checkout.error":
       emit("error", event.data);
