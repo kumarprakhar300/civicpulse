@@ -39,7 +39,6 @@ export const listMyInvoices = createServerFn({ method: "GET" })
       total: (t.details?.totals?.grand_total ?? "0") as string,
       tax: (t.details?.totals?.tax ?? "0") as string,
       taxRate: (t.details?.line_items?.[0]?.tax_rate ?? null) as string | null,
-      countryCode: (t.details?.line_items?.[0]?.proration ? null : null) as string | null,
     }));
   });
 
