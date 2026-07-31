@@ -144,6 +144,83 @@ async function handleSubscriptionCanceled(data: any, env: PaddleEnv) {
   }
 }
 
+/** Find the subscription row a transaction belongs to (webhook payloads only carry IDs). */
+async function findSubscriptionRow(subscriptionId: string | null, env: PaddleEnv) {
+  if (!subscriptionId) return null;
+  const { data } = await getSupabase()
+    .from("subscriptions")
+    .select("user_id, price_id, status, current_period_end")
+    .eq("paddle_subscription_id", subscriptionId)
+    .eq("environment", env)
+    .maybeSingle();
+  return data;
+}
+
+async function handleTransactionCompleted(data: any, env: PaddleEnv) {
+  const subscriptionId: string | null = data.subscriptionId ?? null;
+  const row = await findSubscriptionRow(subscriptionId, env);
+  const userId: string | null = data.customData?.userId ?? row?.user_id ?? null;
+
+  // A completed payment is authoritative proof the subscription is paid up:
+  // clear any past_due state so the UI can't stay stuck on a stale failure.
+  if (subscriptionId && row && row.status === "past_due") {
+    await getSupabase()
+      .from("subscriptions")
+      .update({ status: "active", updated_at: new Date().toISOString() })
+      .eq("paddle_subscription_id", subscriptionId)
+      .eq("environment", env);
+  }
+
+  if (userId) {
+    if (row?.status === "past_due") await grantPaidRole(userId);
+    const total = data.details?.totals?.grandTotal;
+    const currency = data.currencyCode ?? "";
+    await getSupabase().from("notifications").insert({
+      user_id: userId,
+      kind: "payment_succeeded",
+      message: total
+        ? `Payment received (${currency} ${(Number(total) / 100).toFixed(2)}). Your invoice is available on the dashboard.`
+        : `Payment received. Your invoice is available on the dashboard.`,
+    });
+    await notifyTeam("payment_succeeded", userId, `Transaction ${data.id} completed`, {
+      env,
+      subscriptionId,
+      total: total ?? null,
+      currency,
+    });
+  }
+}
+
+async function handleTransactionPaymentFailed(data: any, env: PaddleEnv) {
+  const subscriptionId: string | null = data.subscriptionId ?? null;
+  const row = await findSubscriptionRow(subscriptionId, env);
+  const userId: string | null = data.customData?.userId ?? row?.user_id ?? null;
+
+  // Mark past_due so the dashboard badge reflects reality. Access is NOT revoked —
+  // Paddle dunning retries and will either recover or cancel the subscription.
+  if (subscriptionId && row) {
+    await getSupabase()
+      .from("subscriptions")
+      .update({ status: "past_due", updated_at: new Date().toISOString() })
+      .eq("paddle_subscription_id", subscriptionId)
+      .eq("environment", env);
+  }
+
+  if (userId) {
+    await getSupabase().from("notifications").insert({
+      user_id: userId,
+      kind: "payment_failed",
+      message:
+        "We couldn't process your payment. Update your payment method from the dashboard — we'll retry automatically.",
+    });
+    await notifyTeam("payment_failed", userId, `Transaction ${data.id} payment failed`, {
+      env,
+      subscriptionId,
+      reason: data.payments?.[0]?.errorCode ?? null,
+    });
+  }
+}
+
 async function handleWebhook(req: Request, env: PaddleEnv) {
   const event = await verifyWebhook(req, env);
   switch (event.eventType) {
