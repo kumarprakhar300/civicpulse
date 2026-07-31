@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
@@ -63,7 +63,28 @@ function PricingPage() {
     state: checkoutState,
     lastAttempt,
     failureReason,
+    hydrated: checkoutHydrated,
   } = usePaddleCheckout();
+
+  // Restore the billing toggle after a refresh — from the saved checkout attempt
+  // first, otherwise from the last toggle the buyer used.
+  useEffect(() => {
+    if (!checkoutHydrated) return;
+    if (lastAttempt?.priceId === "city_ngo_yearly") return setBilling("yearly");
+    if (lastAttempt?.priceId === "city_ngo_monthly") return setBilling("monthly");
+    const saved = window.sessionStorage.getItem("civicpulse.pricing.billing");
+    if (saved === "yearly" || saved === "monthly") setBilling(saved);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checkoutHydrated]);
+
+  useEffect(() => {
+    if (!checkoutHydrated) return;
+    try {
+      window.sessionStorage.setItem("civicpulse.pricing.billing", billing);
+    } catch {
+      /* best-effort */
+    }
+  }, [billing, checkoutHydrated]);
   const { label: localizedPrice, currency } = useLocalizedPrice(
     CITY_NGO[billing].priceId,
     CITY_NGO[billing].label,
@@ -165,6 +186,31 @@ function PricingPage() {
             ))}
           </div>
         </div>
+
+        {checkoutState === "cancelled" && lastAttempt && (
+          <div className="mx-auto mt-10 max-w-3xl rounded-2xl border border-amber-400/40 bg-amber-400/10 p-5 text-left backdrop-blur">
+            <p className="text-sm font-semibold text-amber-100">Pick up where you left off</p>
+            <p className="mt-1 text-sm text-amber-100/80">
+              Your selected plan is saved:{" "}
+              <span className="font-semibold text-amber-50">
+                {lastAttempt.planLabel ?? lastAttempt.priceId}
+              </span>
+              . Reopen checkout to choose a payment method — you have not been charged.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Button
+                onClick={() => void retryCheckout()}
+                disabled={checkoutLoading}
+                className="bg-amber-400 text-slate-950 hover:bg-amber-300"
+              >
+                {checkoutLoading ? "Reopening checkout…" : "Resume checkout"}
+              </Button>
+              <Button variant="ghost" onClick={dismissFailure} className="text-amber-100/80">
+                Start over
+              </Button>
+            </div>
+          </div>
+        )}
 
         {checkoutState === "failed" && lastAttempt && (
           <div

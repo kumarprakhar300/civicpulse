@@ -20,14 +20,79 @@ export type CheckoutOptions = {
   successUrl?: string;
 };
 
+const STORAGE_KEY = "civicpulse.checkout.session";
+
+type PersistedCheckout = {
+  lastAttempt: CheckoutOptions | null;
+  state: CheckoutState;
+  failureReason: string | null;
+  lastMethod: string | null;
+};
+
+function readPersisted(): PersistedCheckout | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as PersistedCheckout;
+    if (!parsed || typeof parsed !== "object" || !parsed.lastAttempt?.priceId) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writePersisted(value: PersistedCheckout | null) {
+  if (typeof window === "undefined") return;
+  try {
+    if (!value || !value.lastAttempt) window.sessionStorage.removeItem(STORAGE_KEY);
+    else window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(value));
+  } catch {
+    /* storage unavailable (private mode) — persistence is best-effort */
+  }
+}
+
 export function usePaddleCheckout() {
   const [loading, setLoading] = useState(false);
   const [state, setState] = useState<CheckoutState>("idle");
   const [lastAttempt, setLastAttempt] = useState<CheckoutOptions | null>(null);
   const [failureReason, setFailureReason] = useState<string | null>(null);
   const openRef = useRef(false);
+  const [hydrated, setHydrated] = useState(false);
 
   const lastMethodRef = useRef<string | null>(null);
+
+  // Restore the selected plan + retry state after a refresh so the buyer can
+  // change payment method without re-picking a plan.
+  useEffect(() => {
+    const saved = readPersisted();
+    if (saved) {
+      setLastAttempt(saved.lastAttempt);
+      // The overlay never survives a reload, so an in-flight checkout becomes
+      // a resumable "cancelled" state rather than a stuck "open" one.
+      setState(
+        saved.state === "open" || saved.state === "opening" ? "cancelled" : saved.state,
+      );
+      setFailureReason(saved.failureReason ?? null);
+      lastMethodRef.current = saved.lastMethod ?? null;
+    }
+    setHydrated(true);
+  }, []);
+
+  // Persist whenever the meaningful bits change.
+  useEffect(() => {
+    if (!hydrated) return;
+    if (!lastAttempt || state === "completed") {
+      writePersisted(null);
+      return;
+    }
+    writePersisted({
+      lastAttempt,
+      state,
+      failureReason,
+      lastMethod: lastMethodRef.current,
+    });
+  }, [hydrated, lastAttempt, state, failureReason]);
 
   const openCheckout = useCallback(async (options: CheckoutOptions, isRetry = false) => {
     setLoading(true);
@@ -94,6 +159,8 @@ export function usePaddleCheckout() {
   const dismissFailure = useCallback(() => {
     setState("idle");
     setFailureReason(null);
+    setLastAttempt(null);
+    writePersisted(null);
   }, []);
 
   useEffect(() => {
@@ -166,5 +233,8 @@ export function usePaddleCheckout() {
     state,
     lastAttempt,
     failureReason,
+    hydrated,
+    /** True when a plan was selected before a refresh and checkout can be resumed. */
+    canResume: !!lastAttempt && state !== "completed",
   };
 }
