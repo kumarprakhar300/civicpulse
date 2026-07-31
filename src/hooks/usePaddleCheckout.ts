@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { initializePaddle, getPaddlePriceId, onCheckoutEvent } from "@/lib/paddle";
+import { trackEvent } from "@/lib/analytics";
 
 export type CheckoutState =
   | "idle"
