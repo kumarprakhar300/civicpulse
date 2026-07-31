@@ -21,6 +21,7 @@ import {
 } from "recharts";
 import { PageShell, GlassCard } from "@/components/PageShell";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
+import { InvoicesCard } from "@/components/InvoicesCard";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -125,6 +126,10 @@ function DashboardPage() {
         </div>
 
         <SubscriptionCard />
+
+        <div className="mt-6">
+          <InvoicesCard />
+        </div>
 
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
