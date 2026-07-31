@@ -38,6 +38,24 @@ export function SubscriptionCard() {
     enabled: !!userId,
   });
 
+  // Webhooks are the source of truth: listen for row changes written by Paddle
+  // events so the badge can never drift from the real subscription state.
+  useEffect(() => {
+    if (!userId) return;
+    const channel = supabase
+      .channel(`subscriptions-${userId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "subscriptions", filter: `user_id=eq.${userId}` },
+        () => qc.invalidateQueries({ queryKey: ["my-subscription"] }),
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [userId, qc]);
+
+
   const switchMut = useMutation({
     mutationFn: (newPriceId: string) =>
       doSwitch({ data: { newPriceId, environment, prorate: true } }),
