@@ -9,6 +9,16 @@ import { getInvoicePdfUrl, listMyInvoices } from "@/lib/invoices.functions";
 import { GlassCard } from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
 
+type InvoiceRow = {
+  id: string;
+  invoiceNumber: string | null;
+  billedAt: string | null;
+  currency: string;
+  total: string;
+  tax: string;
+  taxRate: string | null;
+};
+
 function formatMoney(amountMinor: string, currency: string) {
   const value = Number(amountMinor || 0) / 100;
   try {
