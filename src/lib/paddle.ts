@@ -14,7 +14,12 @@ export function getPaddleEnvironment(): "sandbox" | "live" {
 
 let paddleInitialized = false;
 
-export type CheckoutOutcome = "completed" | "closed" | "error" | "payment_failed";
+export type CheckoutOutcome =
+  | "completed"
+  | "closed"
+  | "error"
+  | "payment_failed"
+  | "payment_selected";
 type Listener = (outcome: CheckoutOutcome, data?: any) => void;
 const listeners = new Set<Listener>();
 
