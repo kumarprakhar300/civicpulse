@@ -82,7 +82,7 @@ export function InvoicesCard() {
         </div>
       ) : (
         <ul className="mt-4 divide-y divide-white/5">
-          {invoices!.map((inv) => {
+          {(invoices as InvoiceRow[]).map((inv) => {
             const busy = busyId === inv.id && pdfMut.isPending;
             return (
               <li
