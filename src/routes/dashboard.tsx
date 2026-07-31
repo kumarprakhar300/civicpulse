@@ -126,6 +126,10 @@ function DashboardPage() {
 
         <SubscriptionCard />
 
+        <div className="mt-6">
+          <InvoicesCard />
+        </div>
+
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-cyan-300" />
