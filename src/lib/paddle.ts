@@ -50,6 +50,10 @@ function paddleEventCallback(event: { name?: string; data?: any }) {
     case "checkout.payment.failed":
       emit("payment_failed", event.data);
       break;
+    case "checkout.payment.selected":
+    case "checkout.payment.initiated":
+      emit("payment_selected", event.data);
+      break;
     case "checkout.error":
       emit("error", event.data);
       break;
