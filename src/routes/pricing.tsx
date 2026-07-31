@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import { PageShell } from "@/components/PageShell";
@@ -63,7 +63,28 @@ function PricingPage() {
     state: checkoutState,
     lastAttempt,
     failureReason,
+    hydrated: checkoutHydrated,
   } = usePaddleCheckout();
+
+  // Restore the billing toggle after a refresh — from the saved checkout attempt
+  // first, otherwise from the last toggle the buyer used.
+  useEffect(() => {
+    if (!checkoutHydrated) return;
+    if (lastAttempt?.priceId === "city_ngo_yearly") return setBilling("yearly");
+    if (lastAttempt?.priceId === "city_ngo_monthly") return setBilling("monthly");
+    const saved = window.sessionStorage.getItem("civicpulse.pricing.billing");
+    if (saved === "yearly" || saved === "monthly") setBilling(saved);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checkoutHydrated]);
+
+  useEffect(() => {
+    if (!checkoutHydrated) return;
+    try {
+      window.sessionStorage.setItem("civicpulse.pricing.billing", billing);
+    } catch {
+      /* best-effort */
+    }
+  }, [billing, checkoutHydrated]);
   const { label: localizedPrice, currency } = useLocalizedPrice(
     CITY_NGO[billing].priceId,
     CITY_NGO[billing].label,
