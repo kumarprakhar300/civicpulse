@@ -21,6 +21,7 @@ import {
 } from "recharts";
 import { PageShell, GlassCard } from "@/components/PageShell";
 import { SubscriptionCard } from "@/components/SubscriptionCard";
+import { InvoicesCard } from "@/components/InvoicesCard";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
